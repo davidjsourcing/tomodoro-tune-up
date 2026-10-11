@@ -1,0 +1,61 @@
+All 29 tests pass (was 27 before; +2 new). Here is the complete summary:
+
+---
+
+## Results
+
+`npm test`: **29 pass, 0 fail**
+
+---
+
+## Exact changes
+
+### (1) [`sw.js:1`](sw.js:1) — versioned cache name
+```
+- const cacheName = "clock";
++ const cacheName = "clock-v2";
+```
+
+### [`sw.js:31–41`](sw.js:31) — activate handler added between `install` and `fetch`
+```js
+self.addEventListener("activate", (e) => {
+    e.waitUntil(
+        caches.keys().then((keys) =>
+            Promise.all(
+                keys.filter((key) => key !== cacheName).map((key) => caches.delete(key))
+            )
+        ).then(() => self.clients.claim())
+    );
+});
+```
+Deletes every cache not named `"clock-v2"`, then calls `self.clients.claim()` so existing offline clients immediately adopt the new service worker and receive the updated `src/*.js` files.
+
+---
+
+### (2) [`src/records.js:31`](src/records.js:31) — `settled` flag added
+```js
++ var settled = false;
+```
+[`src/records.js:46–48`](src/records.js:46):
+```js
+  req.onerror = function () {
++     if (settled) return;
++     settled = true;
+      reject(req.error);
+  };
+```
+Prevents `reject()` from being called more than once if multiple concurrent IDB requests fire `onerror`.
+
+### [`test/records.test.js:152–172`](test/records.test.js:152) — two new tests
+`collectTaskRecords resolves with [] when tasks is null` and `…when tasks is undefined` — both pass `null`/`undefined` and assert `deepEqual(records, [])`. Existing 4 tests are untouched.
+
+---
+
+### (3) [`index.js:907`](index.js:907) — unknown custom element replaced
+```js
+- let roundEntryDuration = document.createElement("round-entry-duration");
++ let roundEntryDuration = document.createElement("div");
+```
+The `className` assignment on line 908 is unchanged (`"round-entry-duration"`), so CSS continues to match. Verified: no CSS rule anywhere in the project selects by the `round-entry-duration` tag name; the stylesheet uses only the `.round-entry-duration` class selector.
+
+stats: {"task_id": "618f3e5fe4f45e6c2d9a1033df141976", "duration_ms": 50534, "session_costs": 1.030122, "max_cost": 4, "tool_calls": 16}

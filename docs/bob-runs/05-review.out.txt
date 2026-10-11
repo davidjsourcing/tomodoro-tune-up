@@ -1,0 +1,101 @@
+Sun Oct 11 04:31:48 UTC 2026
+
+Now I have a thorough picture of all files. Let me compile the review.
+
+---
+
+## Code Review
+
+### 🔴 Severity 1 — Correctness / Data Corruption
+
+**1. [`src/backup.js:58`](src/backup.js:58) — Deduplication key collision on numeric `d = 0`**
+
+```js
+if (seenD[d]) {   // falsy when d === 0
+```
+
+`seenD[0]` is `undefined` (falsy), so the first `d = 0` record is accepted. A *second* entry with `d = 0` evaluates `seenD[0]` → `true` and is skipped as a duplicate — correct. But a *third* entry also evaluates `true`, so it **also** gets skipped even though `seenD[d] = true` was already set correctly after the first. This is fine. **The real bug** is that `d = 0` is a valid epoch timestamp and the check silently accepts it, but any `d` that is a property name that already exists on the `Object` prototype (e.g. `d = "constructor"`) will return truthy on the first occurrence, causing a **false duplicate rejection**.
+
+Fix: use a `Map` instead of a plain object:
+```js
+var seenD = new Map();
+// ...
+if (seenD.has(d)) { skipped += 1; continue; }
+seenD.set(d, true);
+```
+
+---
+
+### 🔴 Severity 2 — Behaviour Regression (Offline / Service Worker)
+
+**2. [`sw.js:33`](sw.js:33) — Network-first strategy with no `activate` cache invalidation**
+
+The cache name is the hardcoded string `"clock"` and never changes. After the fork's new files ([`src/records.js`](src/records.js), [`src/colors.js`](src/colors.js), [`src/backup.js`](src/backup.js)) are added to `contentToCache`, **existing users already have an old cache under `"clock"`**. The service worker installs fine, but the `activate` event never calls `caches.delete()` on old caches, so users who are offline will continue to receive the stale cache that lacks the new modules. The browser will never upgrade them automatically without a forced reload.
+
+Fix: version the cache name (e.g. `"clock-v2"`) and add an `activate` handler:
+```js
+const cacheName = "clock-v2";
+self.addEventListener("activate", (e) => {
+    e.waitUntil(caches.keys().then(keys =>
+        Promise.all(keys.filter(k => k !== cacheName).map(k => caches.delete(k)))
+    ));
+});
+```
+
+---
+
+### 🟠 Severity 3 — Correctness (index.js integration)
+
+**3. [`index.js:677`](index.js:677) — `timeYearlyChart` references a non-existent element**
+
+```js
+let timeYearlyChart = document.getElementById("timeyearly");
+```
+
+There is no `id="timeyearly"` in [`index.html`](index.html). `timeYearlyChart` is `null` and the variable is never used elsewhere, so it is dead code — but it signals an incomplete feature and will throw if any future code accesses it.
+
+Fix: either remove the declaration or add the missing DOM element.
+
+---
+
+**4. [`index.js:907`](index.js:907) — Wrong tag name in `roundEntryGen`**
+
+```js
+let roundEntryDuration = document.createElement("round-entry-duration");
+```
+
+This creates a custom HTML element `<round-entry-duration>` (an unknown element), not a `<div>`. It renders as an inline unknown element without the CSS class applying correctly. The correct call is `document.createElement("div")`.
+
+---
+
+### 🟠 Severity 4 — Missing Edge Cases in New Modules/Tests
+
+**5. [`src/records.js:45`](src/records.js:45) — Multiple `onerror` calls after first rejection**
+
+After one request fires `onerror`, the Promise is already rejected, but remaining in-flight requests can still fire `onerror` and call `reject()` a second time. In V8/SpiderMonkey this is silently ignored, but it constitutes an unhandled second rejection in environments with strict unhandled-rejection tracking. Fix: set a `rejected` flag and no-op subsequent errors.
+
+**6. [`test/records.test.js`](test/records.test.js) — `null`/`undefined` tasks not tested**
+
+[`src/records.js:23`](src/records.js:23) guards `!tasks || tasks.length === 0`, but no test exercises `collectTaskRecords(store, null)` or `collectTaskRecords(store, undefined)`. The guard is correct but untested.
+
+**7. [`test/colors.test.js:51`](test/colors.test.js:51) — HSL regex rejects the actual output**
+
+The pattern `/^hsl\(\d+(\.\d+)?,\d+%,\d+%\)$/` requires no space after commas. The implementation ([`src/colors.js:31`](src/colors.js:31)) produces `hsl(0.00,65%,58%)` (no spaces) — this matches. However, if the hue rounds to e.g. `137.51`, the decimal part `\.\d+` only allows one-or-more digits, so `137.51` with two decimals matches fine. **But** `toFixed(2)` always produces exactly two decimal places, meaning the pattern `\d+(\.\d+)?` matches a non-decimal integer but `hsl(0.00,…)` has two decimals, which `\.\d+` also matches. The test passes today, but any change that adds a space (e.g. `hsl(0.00, 65%, 58%)`) will silently break. The pattern should be documented or the assertion made format-agnostic using CSS.supports.
+
+---
+
+### 🟡 Severity 5 — Older Browser Compatibility
+
+**8. [`index.js:841`](index.js:841) — `Intl.DateTimeFormat` with `dateStyle`/`timeStyle`**
+
+```js
+let format = new Intl.DateTimeFormat(undefined, { dateStyle: "full", timeStyle: "short" });
+```
+
+`dateStyle`/`timeStyle` are not supported in Chrome < 76, Firefox < 79, or any version of Samsung Internet < 12. Users on those browsers will see `Invalid option` or a fallback date with no formatting. The app's offline-first audience includes older Android WebViews. Fix: add a try/catch fallback to `.toLocaleString()`.
+
+**9. [`src/records.js:5`](src/records.js:5) — `IDBKeyRange` stub passes the raw value, not a real key range**
+
+In the Node test environment the stub returns `v` directly (the task name string). In `makeFakeStore` the test intercepts this and uses it as a dictionary key — so tests pass. But if this module were ever used in an environment with a real IDB shim (e.g. `fake-indexeddb`), passing a raw string where a `IDBKeyRange` is expected would throw. This is a test-isolation concern rather than a production bug, but worth noting.
+
+stats: {"task_id": "eca5602083ff3603129d847ee867aa67", "duration_ms": 57829, "session_costs": 1.1744719999999997, "max_cost": 4, "tool_calls": 21}

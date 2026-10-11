@@ -1,0 +1,5 @@
+Apply three findings from a code review of this fork (do not re-review):
+(1) sw.js: version the cache name (change "clock" to "clock-v2") and add an "activate" handler that deletes every cache whose name is not the current one and then calls self.clients.claim(), so existing offline users receive the new src/*.js files.
+(2) src/records.js: guard against calling reject() more than once when several IndexedDB requests error (a settled flag); add a test in test/records.test.js that passes null and undefined as the tasks argument and expects [] (do not break the existing tests).
+(3) index.js roundEntryGen(): the line `document.createElement("round-entry-duration")` creates an unknown custom element; change it to createElement("div") and keep the same className so the CSS still applies. Check that the CSS rule for that class does not depend on the old tag name.
+Then run `npm test 2>&1 | tail -8` and report the results and the exact changes with file:line references. Touch nothing else.
