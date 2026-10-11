@@ -574,21 +574,10 @@ async function getRecords(time) {
 			let tr = db.transaction("records", "readonly").objectStore("records").index("task").getAll();
 			tr.onsuccess = () => resolve(tr.result);
 		} else {
-			let filteredArray = Array.from(filteredTasks);
-			filteredArray.forEach((task, i) => {
-				let tr = db
-					.transaction("records", "readonly")
-					.objectStore("records")
-					.index("task")
-					.getAll(IDBKeyRange.only(task));
-				tr.onsuccess = (ev) => {
-					result.push(...tr.result);
-
-					if (i === filteredArray.length - 1) {
-						resolve(result);
-					}
-				};
-			});
+			TomodoroRecords.collectTaskRecords(
+				db.transaction("records", "readonly").objectStore("records"),
+				Array.from(filteredTasks)
+			).then(resolve).catch(() => resolve(result));
 		}
 	});
 }
