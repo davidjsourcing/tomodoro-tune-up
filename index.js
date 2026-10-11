@@ -848,7 +848,10 @@ function pieCardGenerator(task) {
 	el.className = "pie-card";
 	let pieName = document.createElement("div");
 	pieName.className = "pie-card-name";
-	pieName.innerText = task;
+	let nameSwatch = document.createElement("span");
+	nameSwatch.className = "pie-swatch";
+	pieName.appendChild(nameSwatch);
+	pieName.appendChild(document.createTextNode(task));
 	el.appendChild(pieName);
 	let timeHolder = document.createElement("div");
 	let text = document.createElement("span");
@@ -875,7 +878,10 @@ function barGenerator(task) {
 	taskBarContainer.className = "task-bar-container";
 	let legend = document.createElement("div");
 	legend.className = "legend";
-	legend.innerText = task;
+	let legendSwatch = document.createElement("span");
+	legendSwatch.className = "pie-swatch";
+	legend.appendChild(legendSwatch);
+	legend.appendChild(document.createTextNode(task));
 	let barContainer = document.createElement("div");
 	barContainer.className = "bar-container";
 	let bar = document.createElement("div");
@@ -1056,11 +1062,17 @@ async function loadStatistics(updateEntryCards = true) {
 
 	pieSVG.innerHTML = "";
 	let sumOfPrev = 0;
-	charts
-		.sort((a, b) => b.t - a.t)
+	let sortedCharts = charts.sort((a, b) => b.t - a.t);
+	// Palette keyed by the user's stable task order (creation order), so a task keeps its colour
+	// when rankings change between views.
+	let palette = TomodoroColors.taskPalette(tasks);
+	sortedCharts
 		.forEach((chart, i) => {
+			let colour = palette[chart.task];
 			taskBars[chart.task].querySelector(".stat-value").innerText = hmstr(chart.t);
 			taskBars[chart.task].querySelector(".bar").style.width = (chart.t / maxvalue) * 100 + "%";
+			taskBars[chart.task].querySelector(".bar").style.backgroundColor = colour;
+			taskBars[chart.task].querySelector(".pie-swatch").style.backgroundColor = colour;
 			taskBars[chart.task].style.order = i + 1;
 			pieCards[chart.task].style.order = i + 1;
 			pieCards[chart.task].querySelector(".pie-card-time").innerText = `${(
@@ -1069,6 +1081,7 @@ async function loadStatistics(updateEntryCards = true) {
 			).toFixed(2)}%`;
 			pieCards[chart.task].querySelector(".pie-card-time-text").innerText = hmstrFull(chart.t);
 			pieCards[chart.task].querySelector(".pie-card-rounds-span").innerText = chart.n;
+			pieCards[chart.task].querySelector(".pie-swatch").style.backgroundColor = colour;
 
 			let pie = document.createElementNS("http://www.w3.org/2000/svg", "path");
 			let a = (sumOfPrev / totalValue) * Math.PI * 2;
@@ -1093,6 +1106,7 @@ async function loadStatistics(updateEntryCards = true) {
 			pie.appendChild(title);
 			pie.dataset.normal = normal;
 			pie.dataset.task = chart.task;
+			pie.style.fill = colour;
 			pie.addEventListener("pointerenter", pathPointerEnter);
 			pie.addEventListener("pointerleave", pathPointerLeave);
 			pieSVG.appendChild(pie);

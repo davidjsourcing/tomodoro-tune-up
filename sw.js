@@ -5,6 +5,7 @@ const contentToCache = [
 	"./index.css",
 	"./index.js",
 	"./src/records.js",
+	"./src/colors.js",
 	"./worker.js",
 	"./sw.js",
 	"./icons/icon192.png",

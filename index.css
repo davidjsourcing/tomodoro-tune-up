@@ -1229,10 +1229,19 @@ video.pipactive {
 	transition: transform 0.3s, opacity 0.3s;
 	transform-origin: center;
 	opacity: 0.8;
-	fill: var(--coloraccent);
 	stroke: var(--bgcolor2);
 }
 
 #pie svg path:hover {
 	opacity: 1;
+}
+
+.pie-swatch {
+	display: inline-block;
+	width: 12px;
+	height: 12px;
+	border-radius: 3px;
+	margin-right: 6px;
+	vertical-align: middle;
+	flex-shrink: 0;
 }
