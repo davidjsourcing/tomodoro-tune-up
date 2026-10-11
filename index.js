@@ -642,24 +642,24 @@ document.getElementById("backup-restore").addEventListener("change", function ()
 		file.text().then((res) => {
 			try {
 				let dbBackup = JSON.parse(res);
-				let rec = dbBackup.map((r) => {
-					if (!tasks.includes(r.n)) {
-						tasks.push(r.n);
-						createTaskEl(r.n);
+				let { records: rec, tasks: backupTasks, skipped } = TomodoroBackup.normalizeBackup(dbBackup);
+				backupTasks.forEach((n) => {
+					if (!tasks.includes(n)) {
+						tasks.push(n);
+						createTaskEl(n);
 						if (!tasks.includes(selectedTask)) {
-							selectedTask = r.n;
-							taskSelect.value = r.n;
+							selectedTask = n;
+							taskSelect.value = n;
 						}
 					}
-					return { t: r.t, d: r.d, n: r.n };
 				});
 				saveTasks();
 				noTaskManager();
-				console.log(rec, tasks);
 				let tr = db.transaction("records", "readwrite");
-				tr.oncomplete = () => alert("Backup restored successfully!");
+				tr.oncomplete = () => alert("Backup restored successfully! " + rec.length + " record(s) restored, " + skipped + " entry/entries skipped.");
+				tr.onerror = () => alert("Restore failed: " + (tr.error ? tr.error.message : "unknown error") + ". No records were changed.");
 				let objstore = tr.objectStore("records");
-				rec.forEach((r) => objstore.add(r));
+				rec.forEach((r) => objstore.put(r));
 			} catch (error) {
 				console.log(error);
 				alert("An error occured! Make sure that you are restoring a valid backup file.");
