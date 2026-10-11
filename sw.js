@@ -1,4 +1,4 @@
-const cacheName = "clock";
+const cacheName = "clock-v2";
 const contentToCache = [
 	"./",
 	"./index.html",
@@ -26,6 +26,16 @@ self.addEventListener("install", (e) => {
 			const cache = await caches.open(cacheName);
 			await cache.addAll(contentToCache).catch(err => console.log(err));
 		})()
+	);
+});
+
+self.addEventListener("activate", (e) => {
+	e.waitUntil(
+		caches.keys().then((keys) =>
+			Promise.all(
+				keys.filter((key) => key !== cacheName).map((key) => caches.delete(key))
+			)
+		).then(() => self.clients.claim())
 	);
 });
 

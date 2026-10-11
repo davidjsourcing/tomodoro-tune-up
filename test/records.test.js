@@ -147,3 +147,22 @@ test("collectTaskRecords rejects when a request errors", function (t, done) {
 		done();
 	});
 });
+
+// ---------------------------------------------------------------------------
+// 5. Handles null and undefined as the tasks argument — resolves with [].
+// ---------------------------------------------------------------------------
+test("collectTaskRecords resolves with [] when tasks is null", function (t, done) {
+	var store = makeFakeStore({}, {});
+	collectTaskRecords(store, null).then(function (records) {
+		assert.deepEqual(records, []);
+		done();
+	}).catch(done);
+});
+
+test("collectTaskRecords resolves with [] when tasks is undefined", function (t, done) {
+	var store = makeFakeStore({}, {});
+	collectTaskRecords(store, undefined).then(function (records) {
+		assert.deepEqual(records, []);
+		done();
+	}).catch(done);
+});

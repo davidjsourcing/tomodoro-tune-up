@@ -904,7 +904,7 @@ function roundEntryGen(entry) {
 	let roundEntryName = document.createElement("div");
 	roundEntryName.className = "round-entry-name";
 	roundEntryName.innerText = entry.n;
-	let roundEntryDuration = document.createElement("round-entry-duration");
+	let roundEntryDuration = document.createElement("div");
 	roundEntryDuration.className = "round-entry-duration";
 	roundEntryDuration.innerText = hmstrFull(entry.t);
 	let roundEntryTime = document.createElement("div");

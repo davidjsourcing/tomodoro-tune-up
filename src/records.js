@@ -27,6 +27,7 @@
 
 			var results = new Array(tasks.length);
 			var completed = 0;
+			var settled = false;
 
 			tasks.forEach(function (task, i) {
 				var req = store.index("task").getAll(KeyRange.only(task));
@@ -43,6 +44,8 @@
 					}
 				};
 				req.onerror = function () {
+					if (settled) return;
+					settled = true;
 					reject(req.error);
 				};
 			});
