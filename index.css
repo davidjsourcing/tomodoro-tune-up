@@ -485,7 +485,7 @@ h3 {
 	margin-bottom: 10px;
 }
 
-#create-backup, #backup-restore-label {
+#create-backup, #backup-restore-label, #speech-test {
 	font-size: 22px;
 	padding: 5px 10px;
 	margin-right: 10px;
@@ -1276,31 +1276,36 @@ video.pipactive {
 }
 
 #round-note-area {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	gap: 4px;
-	margin-top: 8px;
-}
-
-#round-note-area label {
-	font-size: 13px;
-	color: var(--coloraccent);
+	position: fixed;
+	top: 60px;
+	left: 50%;
+	transform: translateX(-50%);
+	width: min(380px, calc(100vw - 120px));
+	z-index: 2;
 }
 
 #round-note {
-	background-color: var(--bgcolor2);
+	width: 100%;
+	background: transparent;
 	color: var(--color);
-	border: 1px solid var(--coloraccent);
-	border-radius: 5px;
-	padding: 5px 10px;
-	font-size: 14px;
-	width: min(320px, 90vw);
-	outline: none;
+	border: none;
+	border-bottom: 1.5px solid color-mix(in srgb, var(--coloraccent) 45%, transparent);
+	border-radius: 0;
+	padding: 6px 4px;
+	font: inherit;
+	font-size: 16px;
+	text-align: center;
+	transition: border-color 0.2s;
 }
 
+#round-note::placeholder {
+	color: var(--coloraccent);
+	opacity: 0.75;
+}
+
+#round-note:hover,
 #round-note:focus {
-	border-color: var(--color);
+	border-bottom-color: var(--coloraccent);
 }
 
 .round-entry-note {
