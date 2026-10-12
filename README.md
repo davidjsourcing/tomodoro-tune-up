@@ -12,7 +12,11 @@ This is a fork of [lazy-guy/tomodoro](https://github.com/lazy-guy/tomodoro), sub
 **AngelHack "Building with IBM Bob" hackathon, Track 1: Explore, Fix, and Build**.
 Upstream baseline commit: **17a5091**. Everything after it was made during the hackathon window (Oct 11-12, 2026).
 
-**Live:** https://tomodoro-bob.sites.tab.bot/ (the app) · https://tomodoro-bob.sites.tab.bot/tuneup.html (the Tune-Up report)
+> **Prove every claim, or it doesn't ship.** AI writes real code now, and it sounds just as sure when it's wrong.
+> So I gave IBM Bob a real open-source app that students use and one rule: nothing counts unless it's proven.
+
+**Live:** https://tomodoro-bob.sites.tab.bot/tuneup.html (the Tune-Up report) · https://tomodoro-bob.sites.tab.bot/ (the app)
+**Demo video (2:29):** [`media/tomodoro-tuneup-demo-v3.mp4`](media/tomodoro-tuneup-demo-v3.mp4) · **Pitch deck:** [`submission/pitch-deck.pdf`](submission/pitch-deck.pdf) · **Code:** GitHub `davidjsourcing/tomodoro-tune-up` (mirror on GitLab `davidj-builds/tomodoro-tune-up`)
 
 ### Round 2 (Oct 12): IBM Bob, with receipts
 
