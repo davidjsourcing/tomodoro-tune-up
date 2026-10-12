@@ -132,3 +132,56 @@ test("withNote: truncates note to 280 chars", function () {
 	var result = withNote(record, "a".repeat(300));
 	assert.equal(result.m.length, 280);
 });
+
+// ---------------------------------------------------------------------------
+// createEditSession()
+// ---------------------------------------------------------------------------
+
+const { createEditSession } = require("../src/notes.js");
+
+test("createEditSession: save() calls the save callback and marks isDone", function () {
+	let saved = 0;
+	const session = createEditSession(function () { saved++; });
+	assert.equal(session.isDone(), false);
+	session.save();
+	assert.equal(saved, 1);
+	assert.equal(session.isDone(), true);
+});
+
+test("createEditSession: save() is a no-op if called a second time", function () {
+	let saved = 0;
+	const session = createEditSession(function () { saved++; });
+	session.save();
+	session.save();
+	assert.equal(saved, 1);
+});
+
+test("createEditSession: cancel() marks isDone without calling save callback", function () {
+	let saved = 0;
+	const session = createEditSession(function () { saved++; });
+	session.cancel();
+	assert.equal(saved, 0);
+	assert.equal(session.isDone(), true);
+});
+
+test("createEditSession: save() after cancel() is a no-op", function () {
+	let saved = 0;
+	const session = createEditSession(function () { saved++; });
+	session.cancel();
+	session.save();
+	assert.equal(saved, 0);
+});
+
+test("createEditSession: cancel() after save() is a no-op (already done)", function () {
+	let saved = 0;
+	const session = createEditSession(function () { saved++; });
+	session.save();
+	session.cancel();
+	assert.equal(saved, 1);
+	assert.equal(session.isDone(), true);
+});
+
+test("createEditSession: isDone() starts false", function () {
+	const session = createEditSession(function () {});
+	assert.equal(session.isDone(), false);
+});

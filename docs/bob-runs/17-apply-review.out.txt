@@ -1,0 +1,33 @@
+All three bugs fixed, all 117 tests green. Here is a precise account of every change made:
+
+---
+
+## Summary
+
+### F1 + F2 — Transition speech without opt-in / on manual skip
+
+**New pure function [`shouldAnnounceTransition(opts)`](src/speech.js:53)** added to [`src/speech.js`](src/speech.js):
+- Returns `true` only when `transitionsEnabled && intervalMins > 0 && running`
+- The `intervalMins > 0` guard means no speech fires until the user actually turns on spoken reminders (F1 fix)
+- The `running` guard means no speech fires on a manual Next-button skip of a paused timer (F2 fix)
+
+**[`index.js:76`](index.js:76)** — `speechTransitions` default changed from `true` → `false` so a brand-new user hears nothing without opting in.
+
+**[`nextRound()`](index.js:142)** — captures `wasRunning = roundInfo.running` at function entry (before round state mutates), then calls `TomodoroSpeech.shouldAnnounceTransition({ transitionsEnabled: speechTransitions, intervalMins: speechInterval, running: wasRunning })` instead of the bare `if (speechTransitions)` check.
+
+**[`index.html:235-240`](index.html)** — Round Transitions select now defaults to `Disabled`; description updated to *"Say it out loud when a round ends (only active when Reminder Interval is not Off)."*
+
+**8 new tests** in [`test/speech.test.js`](test/speech.test.js) covering all combinations of the three flags.
+
+---
+
+### F3 — Double-save on Enter + blur
+
+**New pure helper [`createEditSession(onSave)`](src/notes.js:57)** added to [`src/notes.js`](src/notes.js):
+- Returns `{ save(), cancel(), isDone() }` backed by a `done` flag
+- `save()` calls `onSave` exactly once; subsequent calls are no-ops
+- `cancel()` sets `done = true` without calling `onSave` (Escape path)
+
+**[`index.js:1000`](index.js:1000)** — note editor click handler now uses `createEditSession`. Enter calls `session.save()`, Escape calls `session.cancel()`, blur calls `session.save()`. Because `save()` is idempotent, the DOM-removal blur that fires after Enter-triggered `replaceWith()` is silently ignored — exactly one `updateRecordNote` write per edit.
+
+**6 new tests** in [`test/notes.test.js`](test/notes.test.js) covering save-once, cancel-no-save, and all cross-call orderings.

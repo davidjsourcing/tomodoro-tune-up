@@ -73,7 +73,7 @@ let roundInfo = {
 };
 
 let speechInterval = 0;
-let speechTransitions = true;
+let speechTransitions = false;
 
 //#region Time
 
@@ -139,6 +139,7 @@ autoStartBreakSelect.addEventListener("change", function() {
 });
 
 function nextRound() {
+	let wasRunning = roundInfo.running;
 	let finished = fullname[roundInfo.current];
 	let body = "Begin ";
 	if (roundInfo.current === "focus") {
@@ -185,7 +186,7 @@ function nextRound() {
 			maxDuration: config[roundInfo.current],
 		});
 	}
-	if (speechTransitions) {
+	if (TomodoroSpeech.shouldAnnounceTransition({ transitionsEnabled: speechTransitions, intervalMins: speechInterval, running: wasRunning })) {
 		TomodoroSpeech.speak(TomodoroSpeech.transitionText(roundInfo.current), typeof speechSynthesis !== "undefined" ? speechSynthesis : undefined);
 	}
 	announce(fullname[roundInfo.current] + " started");
@@ -1003,22 +1004,23 @@ function roundEntryGen(entry) {
 		input.className = "round-entry-note-input";
 		input.maxLength = 280;
 		input.value = TomodoroNotes.noteFromRecord(entry);
-		function saveEdit() {
+		let session = TomodoroNotes.createEditSession(function () {
 			let sanitized = TomodoroNotes.sanitizeNote(input.value);
 			updateRecordNote(entry.d, sanitized);
 			entry.m = sanitized || undefined;
 			noteDisplay.innerText = sanitized;
 			input.replaceWith(noteDisplay);
 			editNoteBtn.style.display = "";
-		}
+		});
 		input.addEventListener("keydown", function (e) {
-			if (e.key === "Enter") { saveEdit(); }
+			if (e.key === "Enter") { session.save(); }
 			if (e.key === "Escape") {
+				session.cancel();
 				input.replaceWith(noteDisplay);
 				editNoteBtn.style.display = "";
 			}
 		});
-		input.addEventListener("blur", saveEdit);
+		input.addEventListener("blur", function () { session.save(); });
 		editNoteBtn.style.display = "none";
 		noteDisplay.replaceWith(input);
 		input.focus();

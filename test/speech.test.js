@@ -2,7 +2,7 @@
 
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
-const { shouldSpeak, reminderText, transitionText, speak } = require("../src/speech.js");
+const { shouldSpeak, shouldAnnounceTransition, reminderText, transitionText, speak } = require("../src/speech.js");
 
 // ---------------------------------------------------------------------------
 // shouldSpeak(secondsLeft, totalSecs, intervalMins)
@@ -151,4 +151,40 @@ test("speak: cancels any queued speech before speaking", function () {
 	assert.equal(cancelCallCount, 1);
 	assert.equal(speakCallCount, 1);
 	delete global.SpeechSynthesisUtterance;
+});
+
+// ---------------------------------------------------------------------------
+// shouldAnnounceTransition({ transitionsEnabled, intervalMins, running })
+// ---------------------------------------------------------------------------
+
+test("shouldAnnounceTransition: returns true when all conditions met", function () {
+	assert.equal(shouldAnnounceTransition({ transitionsEnabled: true, intervalMins: 5, running: true }), true);
+});
+
+test("shouldAnnounceTransition: returns false when transitionsEnabled is false", function () {
+	assert.equal(shouldAnnounceTransition({ transitionsEnabled: false, intervalMins: 5, running: true }), false);
+});
+
+test("shouldAnnounceTransition: returns false when intervalMins is 0 (reminders Off)", function () {
+	assert.equal(shouldAnnounceTransition({ transitionsEnabled: true, intervalMins: 0, running: true }), false);
+});
+
+test("shouldAnnounceTransition: returns false when intervalMins is negative", function () {
+	assert.equal(shouldAnnounceTransition({ transitionsEnabled: true, intervalMins: -1, running: true }), false);
+});
+
+test("shouldAnnounceTransition: returns false when running is false (manual skip on paused timer)", function () {
+	assert.equal(shouldAnnounceTransition({ transitionsEnabled: true, intervalMins: 5, running: false }), false);
+});
+
+test("shouldAnnounceTransition: returns false when all three are false", function () {
+	assert.equal(shouldAnnounceTransition({ transitionsEnabled: false, intervalMins: 0, running: false }), false);
+});
+
+test("shouldAnnounceTransition: returns false when transitionsEnabled false and running false", function () {
+	assert.equal(shouldAnnounceTransition({ transitionsEnabled: false, intervalMins: 5, running: false }), false);
+});
+
+test("shouldAnnounceTransition: returns false when transitionsEnabled true, intervalMins 0, running false", function () {
+	assert.equal(shouldAnnounceTransition({ transitionsEnabled: true, intervalMins: 0, running: false }), false);
 });

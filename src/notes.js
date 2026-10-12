@@ -53,7 +53,30 @@
 		return copy;
 	}
 
-	var TomodoroNotes = { sanitizeNote: sanitizeNote, noteFromRecord: noteFromRecord, withNote: withNote };
+	/**
+	 * createEditSession(onSave)
+	 * Returns a session object { save(), cancel(), isDone() }.
+	 * save() calls onSave exactly once; subsequent calls are no-ops.
+	 * cancel() marks the session done without calling onSave.
+	 */
+	function createEditSession(onSave) {
+		var done = false;
+		return {
+			save: function () {
+				if (done) return;
+				done = true;
+				onSave();
+			},
+			cancel: function () {
+				done = true;
+			},
+			isDone: function () {
+				return done;
+			},
+		};
+	}
+
+	var TomodoroNotes = { sanitizeNote: sanitizeNote, noteFromRecord: noteFromRecord, withNote: withNote, createEditSession: createEditSession };
 
 	// Browser global
 	if (typeof root !== "undefined") {
@@ -62,6 +85,6 @@
 
 	// Node / CommonJS
 	if (typeof module !== "undefined") {
-		module.exports = TomodoroNotes;
+		module.exports = { sanitizeNote: sanitizeNote, noteFromRecord: noteFromRecord, withNote: withNote, createEditSession: createEditSession };
 	}
 }(typeof window !== "undefined" ? window : this));
