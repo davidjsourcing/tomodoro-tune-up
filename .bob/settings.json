@@ -11,6 +11,18 @@
           }
         ]
       }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "^execute_command$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .bob/hooks/shell-guard.mjs",
+            "timeout": 10
+          }
+        ]
+      }
     ]
   }
 }

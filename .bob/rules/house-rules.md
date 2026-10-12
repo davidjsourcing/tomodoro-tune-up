@@ -39,3 +39,8 @@ runtime dependencies. Everything runs directly in the browser as classic scripts
 - Make the smallest change that satisfies the requirement.
 - Do not refactor surrounding code that is unrelated to the task.
 - Do not add error handling for scenarios that cannot occur given the existing code.
+
+## Shell commands
+
+- Run one simple command per execute_command call (e.g. `npm test`). Never combine a pipe (`|`) with `&&`, `||` or `;` in one command: Bob Shell 2.0.6 runs out of memory on that shape on this machine (see docs/BOB-SHELL-NOTES.md). The PreToolUse shell guard blocks it.
+- The working directory is already the project root; no `cd`.
