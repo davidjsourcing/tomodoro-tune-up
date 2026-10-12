@@ -1,0 +1,1 @@
+The heredoc + python approach worked (it has no `|`, `&&`, `||`, or `;`). Now let me write the actual content using the same pattern but with the full review:

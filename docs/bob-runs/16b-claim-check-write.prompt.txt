@@ -1,0 +1,1 @@
+[resume of task 28e7c031297dc20be49ebd6c751b3572] You ran out of budget right before writing. Write docs/reviews/round2-check.md now from what you already verified (claims table, unmet requirements, findings table). Do not re-read files you already read.

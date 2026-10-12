@@ -1,0 +1,7 @@
+You are reviewing round 2 of this fork. Write your verdict to docs/reviews/round2-check.md.
+
+Inputs: the diff from commit 4001a4d to HEAD (run `git diff 4001a4d HEAD --stat` first, then read the changed files directly with read_file rather than printing one huge diff), and the summaries Bob wrote at the end of each round-2 run: docs/bob-runs/11-issue-11-speech.out.txt, 12-issue-8-notes.out.txt, 13-boot-test-fix.out.txt, 14-a11y.out.txt, 15-a11y-followup.out.txt.
+
+1. Extract every concrete factual claim in those five summaries (files created, functions and their behaviour, line numbers, test counts, settings, defaults) and mark each CONFIRMED / WRONG / UNVERIFIABLE with file:line evidence. Run `npm test` once yourself to check the counts.
+2. Then review the behaviour against the requirements in docs/bob-runs/11-issue-11-speech.prompt.txt and 12-issue-8-notes.prompt.txt and list any requirement that is not met, with evidence. Pay attention to: when round-end announcements fire relative to the "Off" interval setting (an existing user who never opted in must not suddenly hear speech); whether speech can fire on page load or on a manual skip; double-saving a note (Enter followed by blur); notes in backup export/restore; the service worker cache list containing every new script.
+3. End with a short table: finding, severity (bug / gap / nit), file:line, suggested minimal fix. Do not edit any source file.
