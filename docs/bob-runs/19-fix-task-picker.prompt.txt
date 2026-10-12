@@ -1,0 +1,6 @@
+Test-First Fixer workflow. A bug that exists in the upstream baseline too (commit 17a5091), found by our browser test:
+1. Create tasks "Calculus" and "Chemistry", pick "Chemistry" in the task picker (#task-select). localStorage pomo-selected-task becomes "Chemistry".
+2. Reload the page.
+3. The picker now shows "Default Task" (the first option), but the app's selectedTask is still "Chemistry", so the next focus round is logged to Chemistry while the student sees a different task. Measured in a real browser: before reload {select:"Chemistry", selectedTask:"Chemistry"}, after reload {select:"Default Task", selectedTask:"Chemistry"}.
+
+Find where index.js builds the #task-select options at start-up and where selectedTask is read from localStorage (cite file:line), and fix it so the picker always shows the task that time will be logged to. If the saved task no longer exists, fall back to the first task and persist that, so picker and selectedTask agree. Put the decision in a pure helper resolveSelectedTask(tasks, saved) -> string in a new src/tasks.js (classic script, window.TomodoroTasks + CommonJS tail), with tests in test/tasks.test.js written first and shown failing; then wire it in, add the script tag before index.js and to the sw.js cache list (bump the version). npm test green. One simple command per call.

@@ -1,0 +1,31 @@
+All done. Here's a summary of everything that was changed and why.
+
+---
+
+## Root cause
+
+[`index.js:614-618`](index.js:614) (the old code inside `loadTasks()`) set `taskSelect.value = selectedTask` while the `<select>` was still empty — no `<option>` elements existed yet. Then [`taskInit()`](index.js:868) at line 870 immediately did `taskSelect.innerHTML = ""` and rebuilt all options via `createTaskEl`, silently discarding the value. After the rebuild the browser defaulted the picker to its first option, so picker and `selectedTask` were out of sync.
+
+---
+
+## Changes made
+
+### [`src/tasks.js`](src/tasks.js) *(new)*
+Pure helper `resolveSelectedTask(tasks, saved) → string`:
+- Returns `saved` when it's a non-empty string that exists in `tasks`.
+- Falls back to `tasks[0]` otherwise (covers null, undefined, empty string, deleted task).
+- Returns `""` for an empty task list.
+- Exposed as `window.TomodoroTasks` + CommonJS tail.
+
+### [`test/tasks.test.js`](test/tasks.test.js) *(new)*
+Eight tests covering every branch: match, no-match, null, empty string, undefined, single-element match, single-element no-match, empty list. Written first and confirmed red before `src/tasks.js` existed.
+
+### [`index.js`](index.js)
+- Removed the premature `taskSelect.value` assignment from [`loadTasks()`](index.js:614) (line 614-618 → comment).
+- Added resolution block at the end of `taskInit()` (after `tasks.forEach(createTaskEl)`): calls `TomodoroTasks.resolveSelectedTask`, assigns `selectedTask`, sets `taskSelect.value`, and persists the fallback to `localStorage` so the picker and logged task agree on every reload.
+
+### [`index.html`](index.html:645)
+Added `<script src="./src/tasks.js">` before `index.js` at line 645.
+
+### [`sw.js`](sw.js)
+Added `"./src/tasks.js"` to the cache list and bumped version from `clock-v5` → `clock-v6`.

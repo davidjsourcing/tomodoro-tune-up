@@ -611,12 +611,7 @@ function loadTasks() {
 		records.forEach((r) => saveRecord(r));
 		localStorage.removeItem("pomo-records");
 	}
-	if (localStorage.getItem("pomo-selected-task")) {
-		if (tasks.includes(localStorage.getItem("pomo-selected-task"))) {
-			selectedTask = localStorage.getItem("pomo-selected-task");
-			taskSelect.value = selectedTask;
-		}
-	}
+	// selectedTask and taskSelect.value are set after options are built in taskInit()
 	if (localStorage.getItem("pomo-stat-period")) {
 		statTimeSelect.value = localStorage.getItem("pomo-stat-period");
 	}
@@ -870,6 +865,16 @@ async function taskInit() {
 	taskSelect.innerHTML = "";
 	noTaskManager();
 	tasks.forEach((task) => createTaskEl(task));
+	// Resolve which task should be selected now that options exist.
+	var saved = localStorage.getItem("pomo-selected-task");
+	selectedTask = TomodoroTasks.resolveSelectedTask(tasks, saved);
+	if (tasks.length > 0) {
+		taskSelect.value = selectedTask;
+		// Persist the fallback so picker and selectedTask agree after reload.
+		if (selectedTask !== saved) {
+			localStorage.setItem("pomo-selected-task", selectedTask);
+		}
+	}
 	allCheckbox.addEventListener("change", function () {
 		if (this.checked) {
 			document.querySelectorAll(".task-checkbox").forEach((el) => (el.checked = true));
