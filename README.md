@@ -47,6 +47,14 @@ Everything after that commit was produced during the hackathon (Oct 11, 2026), i
   writes with idempotent `put()` (restoring the same file twice no longer aborts silently), and
   shows how many records were restored / skipped, or a clear error.
 
+- **Spoken reminders (upstream issue #11)** — new `src/speech.js` module (`TomodoroSpeech`) with
+  pure helpers `shouldSpeak()`, `reminderText()`, `transitionText()`, and `speak()`. A new
+  "Spoken Reminders" settings section lets users pick a reminder interval (Off / 1 / 5 / 10 / 30 min)
+  and toggle round-transition announcements. The timer calls the speech API on every tick that
+  crosses an interval boundary, and speaks a transition phrase when a round ends. Controls are
+  automatically disabled when `speechSynthesis` is unavailable. Covered by `test/speech.test.js`
+  (27 tests across all branches).
+
 - **Review fixes** (from Bob's own code review of the diff) — versioned service-worker cache with
   an `activate` cleanup so existing offline users receive the new files; a settle-once guard in
   `collectTaskRecords()`; a stray `<round-entry-duration>` custom element replaced by a `<div>`.

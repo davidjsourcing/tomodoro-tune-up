@@ -72,6 +72,9 @@ function setTime() {
 		nextRound();
 		return;
 	}
+	if (TomodoroSpeech.shouldSpeak(seconds, config[roundInfo.current], speechInterval)) {
+		TomodoroSpeech.speak(TomodoroSpeech.reminderText(seconds, roundInfo.current), typeof speechSynthesis !== "undefined" ? speechSynthesis : undefined);
+	}
 	let timestr =
 		Math.floor(seconds / 60)
 			.toString()
@@ -170,6 +173,9 @@ function nextRound() {
 			type: "start",
 			maxDuration: config[roundInfo.current],
 		});
+	}
+	if (speechTransitions) {
+		TomodoroSpeech.speak(TomodoroSpeech.transitionText(roundInfo.current), typeof speechSynthesis !== "undefined" ? speechSynthesis : undefined);
 	}
 	notify(`${finished} Complete`, body);
 }
@@ -327,6 +333,49 @@ if (localStorage.getItem("pomo-audio-volume")) {
 }
 
 volumeSliderDisplay();
+
+//#region Speech
+
+let speechInterval = 0;
+let speechTransitions = true;
+
+let speechIntervalSelect = document.getElementById("speech-interval");
+let speechTransitionsSelect = document.getElementById("speech-transitions");
+let speechTestBtn = document.getElementById("speech-test");
+let speechUnavailable = document.getElementById("speech-unavailable");
+
+if (typeof speechSynthesis === "undefined") {
+	speechIntervalSelect.disabled = true;
+	speechTransitionsSelect.disabled = true;
+	speechTestBtn.disabled = true;
+	speechUnavailable.style.display = "";
+}
+
+if (localStorage.getItem("pomo-speech-interval")) {
+	speechInterval = parseInt(localStorage.getItem("pomo-speech-interval"), 10) || 0;
+	speechIntervalSelect.value = speechInterval;
+}
+
+if (localStorage.getItem("pomo-speech-transitions")) {
+	speechTransitions = localStorage.getItem("pomo-speech-transitions") !== "false";
+	speechTransitionsSelect.value = speechTransitions ? "true" : "false";
+}
+
+speechIntervalSelect.addEventListener("change", function () {
+	speechInterval = parseInt(this.value, 10) || 0;
+	localStorage.setItem("pomo-speech-interval", this.value);
+});
+
+speechTransitionsSelect.addEventListener("change", function () {
+	speechTransitions = this.value === "true";
+	localStorage.setItem("pomo-speech-transitions", this.value);
+});
+
+speechTestBtn.addEventListener("click", function () {
+	TomodoroSpeech.speak("Tomodoro spoken reminders are working.", typeof speechSynthesis !== "undefined" ? speechSynthesis : undefined);
+});
+
+//#endregion
 
 let audioCtx;
 let noiseSource;

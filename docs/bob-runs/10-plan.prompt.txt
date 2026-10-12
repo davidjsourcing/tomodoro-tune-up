@@ -1,0 +1,10 @@
+Plan only, do not edit source code. Write the plan to docs/plans/round2.md.
+
+Context: this is a fork of lazy-guy/tomodoro (a vanilla-JS pomodoro web app, 308 stars). Round 1 (see README "About this fork" and BOB-LOG.md) fixed two bugs and shipped upstream issue #6. Round 2 must ship the two remaining open feature requests from real users in the upstream tracker:
+
+- Issue #11 "feature request: spoken reminders" (nicoleahmed): "I really like spoken reminders - it snaps me out of my ADHD hyperfocus modes ... Spoken reminders for set time intervals would be lovely (Personally 5 and 10 minutes most useful, but the voice clock app also provides 1 and 30 minutes, while antonias reads out the time at any minute interval)."
+- Issue #8 "Add Note Functionality to Focus Round Records" (Weizhe-Chen): "a note functionality within Focus Round Records to allow users to document and review specific details related to a task ... a dedicated space to capture and reference information pertaining to each task undertaken during a focus round."
+
+Also check issue #13 "Disable autostart" ("I like the auto start for breaks but I'd like an option to disable the autostart for pomodoros") against the current code (index.js autoStartFocusRounds / index.html #auto-start-focus) and say, with file:line, whether it is already solved.
+
+For #11 and #8 the plan must cite file:line for every place that changes (settings UI in index.html, state + localStorage in index.js, the timer tick in setTime()/worker.js, the record object written in focusEnd()/saveRecord(), roundEntryGen() for the records list, the backup export/restore path and src/backup.js normalizeBackup, sw.js cache list), propose a pure, testable helper module for each (classic script + CommonJS export, like src/records.js) with the exact functions and their tests, list edge cases (speech synthesis unavailable, PiP mode, paused timer, records saved before notes existed, note length limit, backups from older versions), and give the order of work. Keep it under 150 lines.

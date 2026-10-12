@@ -205,6 +205,36 @@
 					</div>
 				</section>
 				<section class="section">
+					<h2>Spoken Reminders</h2>
+					<div id="speech-unavailable" class="setting" style="display:none;">
+						Your browser has no speech voice.
+					</div>
+					<div class="setting">
+						<label for="speech-interval">Reminder Interval:</label>
+						<select name="speech-interval" id="speech-interval" title="Spoken Reminder Interval">
+							<option value="0" selected>Off</option>
+							<option value="1">Every minute</option>
+							<option value="5">Every 5 minutes</option>
+							<option value="10">Every 10 minutes</option>
+							<option value="30">Every 30 minutes</option>
+						</select>
+						<br /><br />
+						Speak a reminder at regular intervals during a round.
+					</div>
+					<div class="setting">
+						<label for="speech-transitions">Round Transitions:</label>
+						<select name="speech-transitions" id="speech-transitions" title="Speak Round Transitions">
+							<option value="true" selected>Enabled</option>
+							<option value="false">Disabled</option>
+						</select>
+						<br /><br />
+						Say it out loud when a round ends.
+					</div>
+					<div class="setting">
+						<button id="speech-test" title="Test voice">Test voice</button>
+					</div>
+				</section>
+				<section class="section">
 					<h2>PIP Mode</h2>
 					<div class="setting">
 						<label for="pip-method-select">PIP Method:</label>
@@ -601,6 +631,7 @@
 		<script src="./src/records.js"></script>
 		<script src="./src/colors.js"></script>
 		<script src="./src/backup.js"></script>
+		<script src="./src/speech.js"></script>
 		<script src="./index.js"></script>
 	</body>
 </html>

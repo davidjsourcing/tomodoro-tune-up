@@ -1,0 +1,37 @@
+All done. Here's a summary of every file changed and why:
+
+---
+
+## What was implemented — issue #11 Spoken Reminders
+
+### [`src/speech.js`](src/speech.js) — new file
+Pure helper module exposed as `window.TomodoroSpeech` with CommonJS tail for Node tests:
+
+- **[`shouldSpeak(secondsLeft, totalSecs, intervalMins)`](src/speech.js:13)** — returns `true` only when `intervalMins > 0`, `0 < secondsLeft < totalSecs`, and `secondsLeft` is an exact multiple of `intervalMins * 60`.
+- **[`reminderText(secondsLeft, round)`](src/speech.js:23)** — builds e.g. `"10 minutes left in your focus round"`, with singular `"minute"` for exactly 1.
+- **[`transitionText(nextRound)`](src/speech.js:38)** — returns one of the three fixed transition phrases.
+- **[`speak(text, synth)`](src/speech.js:51)** — no-op returning `false` if `synth` is falsy; otherwise cancels any queued speech, creates a `SpeechSynthesisUtterance`, and calls `synth.speak()`.
+
+### [`test/speech.test.js`](test/speech.test.js) — new file
+27 tests covering every branch: `intervalMins=0/-5`, boundary `secondsLeft=0/totalSecs`, multiples at 1/5/10/30 min, non-multiples, all three round labels, singular/plural, all three transition phrases, `speak` with `undefined`/`null`, and `speak` with a fake synth verifying cancel-before-speak.
+
+### [`index.html`](index.html:207) — settings UI
+New `<section class="section">` **Spoken Reminders** inserted after Autostart, matching the existing markup pattern:
+- `#speech-interval` select: Off (default) / Every minute / Every 5 minutes / Every 10 minutes / Every 30 minutes
+- `#speech-transitions` select: Enabled (default) / Disabled
+- `#speech-test` button: "Test voice"
+- `#speech-unavailable` div (hidden by default; shown when `speechSynthesis` is absent)
+- `<script src="./src/speech.js">` added before `index.js`
+
+### [`index.js`](index.js) — wiring
+- [`setTime()` line 74](index.js:74) — calls `TomodoroSpeech.shouldSpeak` + `speak` + `reminderText` on each tick.
+- [`nextRound()` line 177](index.js:177) — calls `speak(transitionText(nextRound.current))` when `speechTransitions` is enabled.
+- [Speech settings block](index.js:337) — `speechInterval`/`speechTransitions` vars; reads `pomo-speech-interval` / `pomo-speech-transitions` from localStorage; change listeners persist; disables controls + shows message when `speechSynthesis` is undefined; test button wired up.
+
+### [`sw.js`](sw.js:1) — cache bump
+`cacheName` → `"clock-v3"`, `./src/speech.js` added to the cache array.
+
+### [`README.md`](README.md:50) — documentation
+One bullet added under "What was added or fixed" naming issue #11.
+
+**`npm test` result: ✔ 65 passed, 0 failed.**

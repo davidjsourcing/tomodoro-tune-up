@@ -1,0 +1,14 @@
+Use the issue-to-fix skill and follow docs/plans/round2.md (Issue #11 section). Implement upstream issue #11 "spoken reminders" test-first.
+
+Requirements (decided, do not ask):
+- src/speech.js (classic script, window.TomodoroSpeech + CommonJS tail) with pure functions:
+  - shouldSpeak(secondsLeft, totalSecs, intervalMins) -> boolean: true when intervalMins > 0, 0 < secondsLeft < totalSecs, and secondsLeft is an exact multiple of intervalMins*60.
+  - reminderText(secondsLeft, round) -> string, e.g. "10 minutes left in your focus round", "1 minute left in your short break", "5 minutes left in your long break" (round is "focus" | "short" | "long"; singular "minute" for 1).
+  - transitionText(nextRound) -> "Focus round done. Time for a short break." / "...long break." / "Break's over. Back to focus."
+  - speak(text, synth) -> boolean: no-op returning false when synth (window.speechSynthesis) is missing; otherwise cancels anything queued, speaks one utterance, returns true.
+- test/speech.test.js covering every branch (intervals 1/5/10/30, off, boundaries at 0 and totalSecs, singular/plural, all three rounds, speak with a fake synth and with undefined).
+- Settings UI: a new "Spoken Reminders" <section class="section"> in index.html next to the existing notification settings, matching the existing markup pattern (h2, select with a visible <label for=...>, description text): select #speech-interval with Off (default), Every minute, Every 5 minutes, Every 10 minutes, Every 30 minutes; a checkbox-style select #speech-transitions (Enabled/Disabled, default Enabled) "Say it out loud when a round ends"; a "Test voice" button #speech-test. If speechSynthesis is unavailable, disable the controls and show "Your browser has no speech voice."
+- index.js: persist as localStorage pomo-speech-interval and pomo-speech-transitions; in setTime() call shouldSpeak with seconds left and speak reminderText; in nextRound() speak transitionText when transitions are enabled and interval is not Off. Never speak while the timer is paused (setTime only runs on ticks, keep it that way).
+- Add <script src="./src/speech.js"></script> before index.js, add it to the sw.js cache list and bump the sw cache version.
+- Update README "What was added or fixed" with one bullet naming #11.
+Write the failing test first and show it failing, then implement, then run npm test (one simple command per call).

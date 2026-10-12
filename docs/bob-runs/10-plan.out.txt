@@ -1,0 +1,50 @@
+Plan written to [`docs/plans/round2.md`](docs/plans/round2.md).
+
+---
+
+## Summary
+
+### Issue #13 — Already solved ✅
+
+Confirmed with file evidence:
+- [`index.html:188`](index.html:188) — `#auto-start-focus` select with `Enabled`/`Disabled` options
+- [`index.js:106-108`](index.js:106) — reads `pomo-auto-start-focus` from localStorage
+- [`index.js:156`](index.js:156) — `nextRunningStatus = autoStartFocusRounds` inside `nextRound()`
+
+The feature is complete. No work needed.
+
+---
+
+### Issue #11 — Spoken Reminders
+
+New `src/speech.js` module (classic script + CommonJS tail) with two pure functions:
+- `shouldSpeak(elapsedSecs, totalSecs, intervalSecs)` — detects when elapsed time crosses a whole multiple of the chosen interval from the end; fully testable in Node
+- `speakTime(secondsLeft)` — browser wrapper around `SpeechSynthesisUtterance`
+
+Wired into [`setTime()`](index.js:69) on each worker tick. A new `<select id="speech-interval">` goes in the **Sounds & Notifications** section of [`index.html`](index.html:162). Setting persisted as `pomo-speech-interval`.
+
+Edge cases covered: API unavailable → no-op; paused → no ticks; `intervalSecs ≤ 0` → always false.
+
+---
+
+### Issue #8 — Notes on Focus Round Records
+
+New `src/notes.js` module with:
+- `sanitizeNote(raw, maxLen=500)` — trim + truncate
+- `noteFromRecord(entry)` — returns `entry.m || ""`
+
+Record object in [`focusEnd()`](index.js:612) gains `m: ""`. [`roundEntryGen()`](index.js:901) appends a `<textarea>` that calls new `updateRecordNote(d, text)` on blur. [`normalizeBackup()`](src/backup.js:64) carries `m` through. Older records without `m` silently default to `""`.
+
+---
+
+### Order of Work
+
+```mermaid
+graph LR
+  A[src/speech.js + tests] --> C[Issue 11 wiring]
+  B[src/notes.js + tests] --> D[Issue 8 wiring]
+  C --> E[npm test - all green]
+  D --> E
+```
+
+Does this plan look right? Any changes before switching to agent mode?
