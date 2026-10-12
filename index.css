@@ -1317,14 +1317,16 @@ video.pipactive {
 }
 
 .entry-edit-note {
-	margin-top: 6px;
-	background-color: var(--bgcolor2);
+	margin-top: 10px;
+	margin-right: 8px;
+	background-color: transparent;
 	color: var(--coloraccent);
-	border: 1px solid var(--coloraccent);
-	font-size: 14px;
-	padding: 3px 8px;
+	border: 1.5px solid var(--coloraccent);
+	font-size: 18px;
+	padding: 4px 10px;
 	border-radius: 5px;
 	cursor: pointer;
+	transition: box-shadow 0.3s;
 }
 
 .round-entry-note-input {
