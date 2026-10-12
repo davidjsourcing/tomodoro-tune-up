@@ -1,0 +1,39 @@
+All done. Here's a summary of every change made:
+
+---
+
+## What was done
+
+### Root cause confirmed
+The old hook ran `node --test test/*.test.js` without `--test-reporter=tap`. Inside Bob (where `FORCE_COLOR` is set), Node uses the **spec reporter** which emits ANSI-coloured lines like `ℹ pass 29` instead of TAP `# pass 29`. The fallback regex looked for `passed:` which never appears in either format → always 0/0.
+
+---
+
+### Files created / changed
+
+#### [`test/hook.test.js`](test/hook.test.js) *(new)*
+9 tests covering three input formats — confirmed **red** before the fix (1 test file failed: `Module not found: summarize.cjs`):
+- TAP multi-line (`# pass N` / `# fail N`) — pass count, failure names, ≤3 cap
+- Old single-line comma format (`# tests N, pass P, fail F`)
+- ANSI spec-reporter (stripped `ℹ pass N`, failure names from `✖ name` lines)
+- Edge case: unrecognisable input → `0 passed, 0 failed`
+
+#### [`.bob/hooks/summarize.cjs`](.bob/hooks/summarize.cjs) *(new)*
+Pure exported function [`summarizeTap(output)`](.bob/hooks/summarize.cjs:19) that:
+1. Strips ANSI codes first ([`stripAnsi`](.bob/hooks/summarize.cjs:8))
+2. Tries the old comma format regex
+3. Falls back to `#\s+pass` / `ℹ\s+pass` (both TAP and spec-reporter after stripping)
+4. For failures: tries `not ok N - name` (TAP), then `✖ name` (spec-reporter), caps at 3
+
+#### [`.bob/hooks/test-after-write.mjs`](.bob/hooks/test-after-write.mjs) *(updated)*
+- Now spawns `node --test --test-reporter=tap test/*.test.js` → stable TAP output regardless of `FORCE_COLOR`
+- Imports `summarizeTap` via `createRequire` and delegates all parsing to it
+- Deleted ~30 lines of inline parsing logic
+
+#### Final run:
+```
+ℹ tests 38
+ℹ pass 38
+ℹ fail 0
+```
+Hook output: **`tests: 38 passed, 0 failed`** ✓

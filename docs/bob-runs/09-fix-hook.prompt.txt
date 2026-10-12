@@ -1,0 +1,11 @@
+Use the Test-First Fixer workflow. Bug report: the PostToolUse hook .bob/hooks/test-after-write.mjs always reports "tests: 0 passed, 0 failed", even though `npm test` currently passes 29 tests. Cause to verify: on this Node version, node --test prints its TAP summary as separate lines ("# tests 29", "# pass 29", "# fail 0"), not "# tests 29, pass 29, fail 0", and the fallback regex looks for "passed:" which never appears.
+
+Do it test-first:
+1. Move the parsing into an exported pure function: create .bob/hooks/summarize.cjs exporting summarizeTap(output) -> string (the exact one-line summary, plus "  failing: a, b, c" when there are failures, up to 3 names taken from "not ok N - name" lines). The hook imports it with createRequire.
+2. Write test/hook.test.js (node:test, node:assert) that FIRST fails against the current logic: feed it a real TAP sample with "# pass 29" / "# fail 0" lines and expect "tests: 29 passed, 0 failed"; a sample with 2 failures expects the names; also keep the old single-line format working. Run `npm test` and show the failure before the fix.
+3. Implement, run `npm test` until green, then pipe a sample PostToolUse event for index.js into the hook and show its real output.
+Keep commands simple (npm test, node, cat). Do not touch index.js, index.html, src/ or other tests.
+
+Note: inside Bob, `npm test` runs with FORCE_COLOR set, so node prints the spec reporter instead of TAP: summary lines look like "\u001b[34mℹ pass 29\u001b[39m" (ANSI colour codes, an info sign, no '#') and failures are marked with "✖ name". summarizeTap must handle that format too (strip ANSI codes first); cover it in the test. Better still: make the hook run node with --test-reporter=tap so the output is stable, and keep the parser tolerant of both.
+
+Run one simple command per execute_command call (the workspace shell guard blocks pipes combined with &&/;).
