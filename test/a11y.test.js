@@ -74,3 +74,30 @@ test("a11y: aria-live polite region exists", () => {
 		"Expected an element with aria-live=\"polite\" in index.html"
 	);
 });
+
+// 5. region: <h1> must be inside <header>, not before it
+test("a11y: <h1> is inside <header>", () => {
+	const headerStart = html.indexOf("<header");
+	const headerEnd = html.indexOf("</header>");
+	assert.ok(headerStart !== -1, "Expected a <header> element in index.html");
+	const h1Pos = html.search(/<h1[\s>]/i);
+	assert.ok(h1Pos !== -1, "Expected an <h1> element in index.html");
+	assert.ok(
+		h1Pos > headerStart && h1Pos < headerEnd,
+		"Expected <h1> to be inside <header>, not before it"
+	);
+});
+
+// 6. heading-order: no h3 in #statistics that precedes any h2 in that panel
+test("a11y: #statistics has no h3 before its first h2 (heading-order)", () => {
+	const statsStart = html.indexOf('id="statistics"');
+	assert.ok(statsStart !== -1, "Expected element with id=\"statistics\"");
+	const statsContent = html.slice(statsStart);
+	const firstH2 = statsContent.search(/<h2[\s>]/i);
+	const firstH3 = statsContent.search(/<h3[\s>]/i);
+	// Either there is no h3 at all, or the first h3 comes after the first h2
+	assert.ok(
+		firstH3 === -1 || (firstH2 !== -1 && firstH2 < firstH3),
+		"Expected no h3 in #statistics before the first h2 (heading-order violation)"
+	);
+});

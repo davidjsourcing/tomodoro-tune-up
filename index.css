@@ -398,6 +398,14 @@ h3 {
 	font-weight: normal;
 }
 
+.stat-filter-heading {
+	font-size: 24px;
+	font-weight: normal;
+	border-bottom: none;
+	padding-bottom: 0;
+	margin: 0;
+}
+
 .setting {
 	width: 100%;
 	padding: 15px 5px;

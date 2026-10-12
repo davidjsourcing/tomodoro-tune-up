@@ -1,0 +1,4 @@
+Small accessibility follow-up, Test-First Fixer workflow. After the last round, axe-core reports 2 remaining violations on the running app:
+- moderate region: the visually-hidden <h1> is outside every landmark (it sits before <header>). Move it inside the <header>.
+- moderate heading-order: "Heading levels should only increase by one" at `.setting:nth-child(1) > h3` (statistics panel, around the Time Spent / filters area). Find which h3 directly follows a heading two levels up and fix the level with the smallest change that keeps the look identical (adjust CSS if a selector targets the tag).
+Extend test/a11y.test.js first (h1 inside header; no h3 that directly follows an h1 without an h2 in that panel), show it failing, fix, npm test green. One simple command per call.
