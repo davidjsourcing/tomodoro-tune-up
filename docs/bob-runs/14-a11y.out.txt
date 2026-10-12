@@ -1,0 +1,31 @@
+All 101 tests pass (94 existing + 7 new a11y tests). Here's a summary of every change made:
+
+---
+
+## Changes made
+
+### [`test/a11y.test.js`](test/a11y.test.js) — new file
+Seven static assertions against `index.html` as text:
+1. `for="task-select"` attribute exists
+2. Exactly one `<h1>` element
+3. `<header>` wraps `#taskswitcher`
+4. `#menu` has `aria-label`
+5. `#statistics` has `aria-label`
+6. `#managetasks` has `aria-label`
+7. `aria-live="polite"` region exists
+
+### [`index.html`](index.html)
+- **label-title-only**: Added `<label for="task-select" class="visually-hidden">Current task</label>` before the `<select>` ([line 19](index.html:19))
+- **page-has-heading-one**: Added `<h1 class="visually-hidden">Tomodoro</h1>` at the top of `<body>` ([line 15](index.html:15)) — visually hidden so layout is unchanged
+- **region**: Wrapped `#menubtn`, `#taskswitcher`, `#round-note-area`, and `#popupbtn` in `<header>` ([lines 16–52](index.html:16))
+- **region panels**: Added `role="region" aria-label="Settings"` to `#menu`, `role="region" aria-label="Statistics"` to `#statistics`, `role="region" aria-label="Tasks"` to `#managetasks`
+- **aria-live**: Added `<div id="a11y-announce" aria-live="polite" aria-atomic="true" class="visually-hidden"></div>` after `</header>` ([line 53](index.html:53))
+
+### [`index.css`](index.css)
+- **`.visually-hidden`** utility class ([lines 12–21](index.css:12)) — standard SR-only pattern (1×1px clipped)
+- **`:focus-visible` outline** for `button`, `select`, `input` using `var(--coloraccent)` ([lines 24–28](index.css:24))
+
+### [`index.js`](index.js)
+- **`a11yAnnounce`** element reference and **`announce(msg)`** helper ([lines 13–20](index.js:13)) — clears then sets `textContent` with a 50ms delay so re-announcing the same string re-fires the live region
+- **`announce()` call** in `nextRound()` ([line 192](index.js:192)): announces e.g. `"Focus started"`, `"Short Break started"`, `"Long Break started"`
+- **Escape key** closes the open panel by simulating a click on the existing close button ([lines 238–247](index.js:238)) — reuses the same animation logic already in those handlers

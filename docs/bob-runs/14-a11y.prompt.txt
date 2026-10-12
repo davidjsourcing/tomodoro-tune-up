@@ -1,0 +1,13 @@
+Use the Test-First Fixer workflow for an accessibility round. Students who use a keyboard or a screen reader should be able to run a focus session. I ran axe-core 4 (default rules) on the running app in four states (main screen, settings open, statistics open, tasks open). Violations on the current code:
+- serious label-title-only (Form elements should have a visible label): #task-select
+- moderate page-has-heading-one (Page should contain a level-one heading): html
+- moderate region (All page content should be contained by landmarks): #task-select, #round-note-area, #menu > .menu-title, section:nth-child(1), section:nth-child(2) > h2, section:nth-child(2) > .setting:nth-child(2), #accents > h3, .content > section:nth-child(3), #statistics > .menu-title, .setting:nth-child(1), .content > .setting:nth-child(2), .content > h2:nth-child(5), #stat-summary, h2:nth-child(7), #managetasks
+(The upstream baseline 17a5091 has the same three rules: 18 nodes.)
+
+Fix them with minimal, semantic markup changes, keeping the visual design identical:
+1. label-title-only: give #task-select a real accessible label that does not change the layout (a visually-hidden <label for="task-select"> using a .visually-hidden utility class you add to index.css).
+2. page-has-heading-one: add one <h1> for the app name that fits the existing design (the #no-task-title "Tomodoro" text or a visually-hidden h1; pick the least invasive).
+3. region: put the top controls (#menubtn, #taskswitcher, #round-note-area, #popupbtn) inside a <header> landmark and make the three slide-in panels landmarks (#menu, #statistics, #managetasks as <aside> or role="region" with aria-label). Check index.js and index.css for selectors that would break if an element's tag or parent changes (e.g. "body > div", "div#menu") and keep them working.
+4. Also, not flagged by axe but needed: an aria-live="polite" region that announces round changes ("Focus round started", "Short break started"...) for screen readers, and Escape closes whichever panel is open. Add a visible :focus-visible outline for buttons, selects and inputs using the existing accent colour variable.
+5. Tests: add test/a11y.test.js that reads index.html as text and asserts the static fixes (label for task-select, exactly one h1, a header element containing #taskswitcher, aria-label on the three panels, an aria-live region). Show it failing first, then fix, then npm test green (boot tests included).
+One simple command per execute_command call.

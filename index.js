@@ -10,6 +10,14 @@ let mainel = document.getElementById("main");
 let statisticsDiv = document.getElementById("statistics");
 let menu = document.getElementById("menu");
 let manageTasks = document.getElementById("managetasks");
+let a11yAnnounce = document.getElementById("a11y-announce");
+
+function announce(msg) {
+	if (!a11yAnnounce) return;
+	// Clear first so re-announcing the same string still fires the live region
+	a11yAnnounce.textContent = "";
+	setTimeout(function() { a11yAnnounce.textContent = msg; }, 50);
+}
 
 let timediv = document.getElementById("time");
 let timer = document.getElementById("timer");
@@ -180,6 +188,7 @@ function nextRound() {
 	if (speechTransitions) {
 		TomodoroSpeech.speak(TomodoroSpeech.transitionText(roundInfo.current), typeof speechSynthesis !== "undefined" ? speechSynthesis : undefined);
 	}
+	announce(fullname[roundInfo.current] + " started");
 	notify(`${finished} Complete`, body);
 }
 
@@ -226,6 +235,16 @@ document.getElementById("resetround").addEventListener("click", () => {
 
 document.addEventListener("keydown", (event) => {
 	if (event.isComposing || event.keyCode === 229) {
+		return;
+	}
+	if (event.code === "Escape") {
+		if (viewState === "menu") {
+			menubtn.click();
+		} else if (viewState === "statistics") {
+			document.getElementById("closestats").click();
+		} else if (viewState === "tasks") {
+			document.getElementById("closetasks").click();
+		}
 		return;
 	}
 	if (event.code === "Space") {

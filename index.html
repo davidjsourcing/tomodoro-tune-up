@@ -12,6 +12,8 @@
 		<meta name="theme-color" id="theme-meta" content="#222233" />
 	</head>
 	<body>
+		<h1 class="visually-hidden">Tomodoro</h1>
+		<header>
 		<button id="menubtn" title="Open Settings"></button>
 		<div id="taskswitcher">
 			<button id="statbtn" title="View Statistics">
@@ -19,6 +21,7 @@
 				<span id="statline2"></span>
 				<span id="statline3"></span>
 			</button>
+			<label for="task-select" class="visually-hidden">Current task</label>
 			<select name="task" id="task-select" title="Switch Task"></select>
 			<div id="no-task-title" title="No Task Found">Tomodoro</div>
 			<button id="managetaskbtn" title="Manage Task">
@@ -40,6 +43,8 @@
 				/>
 			</svg>
 		</button>
+		</header>
+		<div id="a11y-announce" aria-live="polite" aria-atomic="true" class="visually-hidden"></div>
 		<main id="main">
 			<div id="timer" class="t-focus">
 				<svg id="ring" viewbox="0 0 100 100">
@@ -102,7 +107,7 @@
 				</svg>
 			</button>
 		</main>
-		<div id="menu" class="scrollbar">
+		<div id="menu" class="scrollbar" role="region" aria-label="Settings">
 			<div class="menu-title">Tomodoro</div>
 			<div class="content">
 				<section class="section">
@@ -316,7 +321,7 @@
 				</section>
 			</div>
 		</div>
-		<div id="statistics" class="scrollbar">
+		<div id="statistics" class="scrollbar" role="region" aria-label="Statistics">
 			<div class="menu-title">
 				Statistics
 				<button id="closestats" class="crossbtn" title="Close Statistics"></button>
@@ -573,7 +578,7 @@
 				</details>
 			</div>
 		</div>
-		<div id="managetasks" class="scrollbar">
+		<div id="managetasks" class="scrollbar" role="region" aria-label="Tasks">
 			<div class="menu-title">
 				Tasks
 				<button id="closetasks" class="crossbtn" title="Return to main screen"></button>

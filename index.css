@@ -9,6 +9,27 @@ button, select, input, label {
 	-webkit-tap-highlight-color: transparent;
 }
 
+/* Utility: hide visually but keep accessible to screen readers */
+.visually-hidden {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+
+/* Keyboard focus outline using the accent colour */
+button:focus-visible,
+select:focus-visible,
+input:focus-visible {
+	outline: 3px solid var(--coloraccent);
+	outline-offset: 2px;
+}
+
 :root {
 	--bgcolor: #222233;
 	--bgcolor2: #333344;
