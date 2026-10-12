@@ -5,7 +5,7 @@
 - **Team:** Tomodoro Tune-Up — David J (solo, early career)
 - **Repo:** https://github.com/davidjsourcing/tomodoro-tune-up (mirror: https://gitlab.com/davidj-builds/tomodoro-tune-up) — public, MIT; upstream lazy-guy/tomodoro, baseline commit 17a5091
 - **Live demo:** https://tomodoro-bob.sites.tab.bot/tuneup.html (Tune-Up Report) → "Open the app"
-- **Demo video (2:29, narrated + captioned):** YOUTUBE_URL — the same file is in [`../media/tomodoro-tuneup-demo-v3.mp4`](../media/tomodoro-tuneup-demo-v3.mp4)
+- **Demo video (2:29, narrated + captioned):** https://www.youtube.com/watch?v=K6f4LB_aSGs — the same file is in [`../media/tomodoro-tuneup-demo-v3.mp4`](../media/tomodoro-tuneup-demo-v3.mp4)
 - **Pitch deck:** [`pitch-deck.pdf`](pitch-deck.pdf) (10 slides: team + intro, summary, Bob adoption, results, learnings + roadmap)
 - **How Bob was used:** [`../BOB-LOG.md`](../BOB-LOG.md) (19 runs, every prompt/output/cost/correction), the Tune-Up Kit in [`../.bob/`](../.bob/) explained in [`../docs/TUNEUP-KIT.md`](../docs/TUNEUP-KIT.md), raw transcripts in [`../docs/bob-runs/`](../docs/bob-runs/), Claim Checker audit in [`../docs/reviews/round2-check.md`](../docs/reviews/round2-check.md)
 - **Testing instructions:** `npm test` (Node 20+, no dependencies: 144 tests). Browser flows: `docs/e2e/` (see [`../TEST-REPORT.md`](../TEST-REPORT.md): 35/35, axe-core 0).
