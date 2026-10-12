@@ -238,6 +238,9 @@ document.addEventListener("keydown", (event) => {
 	if (event.isComposing || event.keyCode === 229) {
 		return;
 	}
+	if (TomodoroKeys.isTypingTarget(event.target)) {
+		return;
+	}
 	if (event.code === "Escape") {
 		if (viewState === "menu") {
 			menubtn.click();

@@ -1,4 +1,4 @@
-const cacheName = "clock-v4";
+const cacheName = "clock-v5";
 const contentToCache = [
 	"./",
 	"./index.html",
@@ -9,6 +9,7 @@ const contentToCache = [
 	"./src/notes.js",
 	"./src/backup.js",
 	"./src/speech.js",
+	"./src/keys.js",
 	"./worker.js",
 	"./sw.js",
 	"./icons/icon192.png",

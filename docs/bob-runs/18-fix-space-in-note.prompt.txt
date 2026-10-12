@@ -1,0 +1,7 @@
+Test-First Fixer workflow. Bug found while recording the demo: typing a space in the new "Note for this round" input (#round-note, main screen) starts or pauses the timer, and focus jumps away, so the note ends up as "Chem" instead of "Chem ch. 4, problem set 2". Cause: the document keydown handler in index.js (around line 237) treats Space as the play/pause shortcut whenever viewState is "timer", even when the key was typed into a text field. Escape has the same problem: pressing Escape inside the record note editor also closes the whole statistics panel.
+
+Fix it test-first:
+1. Create src/keys.js (classic script, window.TomodoroKeys + CommonJS tail) with a pure function isTypingTarget(el) -> true for INPUT elements whose type is text-like (text, search, email, url, number, password, or missing type), TEXTAREA, SELECT, and any element with isContentEditable true; false for buttons, checkboxes, null/undefined.
+2. test/keys.test.js covering each case with plain objects ({ tagName: "INPUT", type: "text" } etc.). Show it failing first (module missing), then implement.
+3. In the keydown handler, return early (let the field handle the key) when TomodoroKeys.isTypingTarget(event.target) is true, before both the Escape and the Space branches. Add the <script> tag before index.js and add the file to the sw.js cache list (bump the version).
+4. npm test green (boot tests included). One simple command per call.

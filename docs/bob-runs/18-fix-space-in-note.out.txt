@@ -1,0 +1,39 @@
+All done. Here's a summary of every change made:
+
+---
+
+### What was done
+
+**`src/keys.js`** (new file)  
+[`isTypingTarget(el)`](src/keys.js:20) — pure function that returns `true` for:
+- `INPUT` with a text-like `type` (`text`, `search`, `email`, `url`, `number`, `password`) or no/empty type (browser default is text)
+- `TEXTAREA`, `SELECT`
+- Any element where `isContentEditable === true`
+
+Returns `false` for buttons, checkboxes, radios, `null`/`undefined`. Exposed as `window.TomodoroKeys` with a CommonJS tail for Node tests.
+
+---
+
+**`test/keys.test.js`** (new file, 22 cases)  
+Covers all text-like INPUT types, non-text INPUT types, TEXTAREA, SELECT, contenteditable, BUTTON, and null/undefined. Confirmed red (module missing) before implementation, green after.
+
+---
+
+**`index.js`** ([line 240](index.js:240))  
+Added early-return guard at the top of the `keydown` handler, before both the `Escape` and `Space` branches:
+```js
+if (TomodoroKeys.isTypingTarget(event.target)) {
+    return;
+}
+```
+This fixes typing Space in `#round-note` triggering play/pause, and pressing Escape in the note editor closing the statistics panel.
+
+---
+
+**`index.html`** ([line 645](index.html:645))  
+Added `<script src="./src/keys.js"></script>` immediately before `./index.js` so `TomodoroKeys` is available when `index.js` runs.
+
+---
+
+**`sw.js`** ([line 1](sw.js:1), [line 12](sw.js:12))  
+Bumped cache name `clock-v4` → `clock-v5` and added `"./src/keys.js"` to `contentToCache`.
