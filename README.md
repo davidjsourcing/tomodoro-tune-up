@@ -9,10 +9,33 @@ A pomodoro web app with PIP mode, white noise generation, tasks and more!
 ## About this fork (IBM Bob hackathon)
 
 This is a fork of [lazy-guy/tomodoro](https://github.com/lazy-guy/tomodoro), submitted to the
-**AngelHack "Building with IBM Bob" hackathon — Theme 1: Explore, Fix, and Build**.
+**AngelHack "Building with IBM Bob" hackathon, Track 1: Explore, Fix, and Build**.
+Upstream baseline commit: **17a5091**. Everything after it was made during the hackathon window (Oct 11-12, 2026).
 
-Upstream baseline commit: **17a5091**.
-Everything after that commit was produced during the hackathon (Oct 11, 2026), inside the Sep 28 – Oct 18 hackathon window.
+**Live:** https://tomodoro-bob.sites.tab.bot/ (the app) · https://tomodoro-bob.sites.tab.bot/tuneup.html (the Tune-Up report)
+
+### Round 2 (Oct 12): IBM Bob, with receipts
+
+| | Before (upstream 17a5091) | After |
+|---|---|---|
+| Open upstream feature requests shipped | 0 | **3**: #6 (round 1), #11 spoken reminders, #8 notes on focus rounds. #13 checked: already solved upstream. |
+| Bugs fixed | | 2 in round 1, plus 1 upstream bug found by our browser test (task picker vs logged task after reload) |
+| Automated tests | 0 | **144** (`npm test`, zero dependencies), including a boot test that loads every app script |
+| axe-core violations (main, settings, statistics, tasks) | **18** nodes / 3 rules | **0** |
+| Browser click-through (desktop + 390px phone) | | **35 / 35** flows pass ([TEST-REPORT.md](TEST-REPORT.md)) |
+| Bob customizations committed | none | **Tune-Up Kit** in `.bob/`: 3 custom modes, 1 skill, house rules, 2 hooks ([docs/TUNEUP-KIT.md](docs/TUNEUP-KIT.md)) |
+
+How round 2 worked: Bob built its own toolkit first (run 8), then every change went through it.
+**Plan mode** wrote [`docs/plans/round2.md`](docs/plans/round2.md); **Test-First Fixer** shipped each issue with a
+failing test first while the **PostToolUse hook** ran the whole suite after every file Bob wrote; **Claim Checker**
+audited Bob's own summaries ([`docs/reviews/round2-check.md`](docs/reviews/round2-check.md)) and found 3 real bugs,
+which Bob then fixed. Every prompt, output, cost and hand correction is in [`BOB-LOG.md`](BOB-LOG.md).
+
+Where Bob was wrong this round, and what caught it: the hook's first version always reported 0 tests (caught when we
+ran it, fixed test-first); spoken reminders passed all unit tests but broke the app on load (caught by a browser check,
+now covered by `test/boot.test.js`); round-end speech for people who never opted in, speech on a manual skip, a note
+saved twice (caught by Claim Checker); typing a space in the new note field started the timer (caught while recording
+the demo, fixed in run 18).
 
 ### What was added or fixed
 
@@ -55,6 +78,27 @@ Everything after that commit was produced during the hackathon (Oct 11, 2026), i
   automatically disabled when `speechSynthesis` is unavailable. Covered by `test/speech.test.js`
   (27 tests across all branches).
 
+- **Notes on focus rounds (upstream issue #8)** — a "Note for this round" field under the task picker; the note is
+  saved with the record when the round ends, shown under the round in Focus Round Records, editable there (Enter or
+  blur saves exactly once, Escape cancels), and kept in backups. `src/notes.js` (`sanitizeNote`, `noteFromRecord`,
+  `withNote`, `createEditSession`), `normalizeBackup` keeps a valid note. Tests: `test/notes.test.js`, `test/backup.test.js`.
+
+- **Spoken reminders only for people who opt in** — round-end announcements fire only when spoken reminders are on and
+  the round ended while the timer was running (`shouldAnnounceTransition`), from the Claim Checker review (run 17).
+
+- **Accessibility** — visually hidden label for the task picker, an `<h1>`, a `<header>` landmark and labelled panel
+  regions, an `aria-live` region that announces each round, Escape closes any panel, visible focus outlines.
+  axe-core: 18 violations to 0. Tests: `test/a11y.test.js`.
+
+- **Keyboard shortcuts ignore text fields** — Space and Escape typed into an input no longer start the timer or close
+  a panel (`src/keys.js` `isTypingTarget`, `test/keys.test.js`).
+
+- **Task picker matches the logged task after a reload (upstream bug)** — the picker used to show the first task while
+  time went to the saved one (`src/tasks.js` `resolveSelectedTask`, `test/tasks.test.js`).
+
+- **Boot test** — `test/boot.test.js` loads `index.html`'s scripts in `node:vm` with a stub DOM, so a page that throws
+  on load fails `npm test`.
+
 - **Review fixes** (from Bob's own code review of the diff) — versioned service-worker cache with
   an `activate` cleanup so existing offline users receive the new files; a settle-once guard in
   `collectTaskRecords()`; a stray `<round-entry-duration>` custom element replaced by a `<div>`.
@@ -88,6 +132,13 @@ npm test
 | [`test/records.test.js`](test/records.test.js) | `collectTaskRecords()` — IDB race-condition fix, empty/null inputs, error rejection |
 | [`test/backup.test.js`](test/backup.test.js) | `normalizeBackup()` — field validation, duplicate-key deduplication, task-list ordering, non-array TypeError |
 | [`test/colors.test.js`](test/colors.test.js) | `taskPalette()` / `taskColor()` — determinism, order-dependence, 12-task colour uniqueness, hsl() format |
+| [`test/speech.test.js`](test/speech.test.js) | spoken reminders: interval maths, wording, round-end rule, speech API missing |
+| [`test/notes.test.js`](test/notes.test.js) | notes: sanitising, immutability, save-once editor session |
+| [`test/keys.test.js`](test/keys.test.js) | which elements are text fields for the keyboard shortcuts |
+| [`test/tasks.test.js`](test/tasks.test.js) | which task the picker shows after a reload |
+| [`test/a11y.test.js`](test/a11y.test.js) | static accessibility checks on `index.html` |
+| [`test/boot.test.js`](test/boot.test.js) | the whole app boots without an error (first visit and returning user) |
+| [`test/hook.test.js`](test/hook.test.js) | the Tune-Up Kit hook's test-summary parser |
 
 ### How IBM Bob was used
 
@@ -97,7 +148,7 @@ produced during the exploration phase.
 
 ---
 
-*This hackathon work was driven by David J using IBM Bob Shell, with help from an AI assistant.*
+*This hackathon work was driven by David J using IBM Bob Shell (headless `bob run`, custom modes, a skill and hooks), with help from an AI assistant that wrote prompts, checked Bob's claims against the code, ran the browser tests and kept the log honest. The demo video's narration is text-to-speech.*
 
 ---
 

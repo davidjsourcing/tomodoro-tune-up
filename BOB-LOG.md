@@ -152,3 +152,38 @@ needs a credit card, which was not used). Tests: 0 → 29. Files touched by Bob:
 - Headless `bob run` reads stdin; when driven from a script that is itself piped into bash, give it `< /dev/null`.
 - Bob's "fragile areas" list and its review each contained confident findings that the code disproves
   (listed above). Reading the lines it cites before acting on them was the single most useful habit.
+
+
+---
+
+# Round 2 — Oct 12, 2026 (01:55–03:10 UTC): "IBM Bob, with receipts"
+
+Goal: go deeper with Bob than plain prompts. Bob first builds its own toolkit for this repo (custom modes, a skill,
+rules, hooks), then every round-2 change goes through it. Same honesty rules as round 1: every prompt is in
+`docs/bob-runs/NN-*.prompt.txt`, every run's full event stream in `NN-*.stream.jsonl`, Bob's final words in `NN-*.out.txt`.
+Costs are the session costs Bob reported. Round 2 total ≈ 25 Bobcoins (round 1 ≈ 9; trial allowance 50).
+Bob Shell was run headless (`bob run -f stream-json --mode <mode> --max-cost N`) on a 4 GB Linux box.
+
+| Run | Mode | What Bob did | Kept | Corrected by hand / what went wrong | Cost |
+|---|---|---|---|---|---|
+| 8 | agent (built-in skills create-mode, create-skill, configure-hooks) | Wrote the Tune-Up Kit: `.bob/custom_modes.yaml` (scout, test-first-fixer, claim-checker), `.bob/rules/house-rules.md`, `.bob/skills/issue-to-fix/SKILL.md`, the PostToolUse hook + script | all of it | The session was OOM-killed during its self-test, so Bob never ran its own hook; `docs/TUNEUP-KIT.md` (step 6 of the prompt) was written by hand later. We checked the rules folder: `.bob/rules/` is a real Bob location (Bob was right). | ≈1.03 (session OOM-killed before its summary; last cost the log printed) |
+| — | (hand) | | | Added `.bob/hooks/shell-guard.mjs` (PreToolUse) after reproducing the Bob process blowing up on `X && Y \| Z` commands, and 4 GB swap on the box. See `docs/BOB-SHELL-NOTES.md`. | — |
+| 9 | test-first-fixer | Bug we found by running Bob's hook: it always printed `tests: 0 passed, 0 failed`. Bob wrote `test/hook.test.js` first (red), moved parsing into `.bob/hooks/summarize.cjs`, switched the hook to the TAP reporter, green at 38 tests | all | First 3 attempts died to the OOM killer (before swap). Inside this run the hook fired 24 times and the shell guard blocked 1 command; Bob retried with a simple command. | 0.73 (after 3 attempts killed by the OOM killer, ≈0.4 together) |
+| 10 | plan | Plan for upstream #11 and #8 with file:line touch points, helper modules, edge cases; verified #13 is already solved upstream (`index.html:188`, `index.js:106`, `index.js:156`) → `docs/plans/round2.md` | all | — | 0.39 |
+| 11 | test-first-fixer + issue-to-fix skill | Issue #11 spoken reminders: `src/speech.js`, 27 tests, settings section, tick + round-end speech, sw cache | all | Passed every unit test but **broke the app on load** (TDZ on `speechInterval`) — found by our headless-browser check, fixed in run 13. Round-end speech also fired for users who never opted in — found by run 16. | 2.05 |
+| 12 | test-first-fixer + issue-to-fix skill | Issue #8 notes: `src/notes.js`, tests, round-note input, edit note in records, notes in backups | all | Stopped at its 3-Bobcoin cap before the README bullet (written by hand). Typing a space in the new note field started the timer — found while recording the demo, fixed in run 18. | 3.05 (hit its 3-Bobcoin cap) |
+| 13 | test-first-fixer | Closed the blind spot: `test/boot.test.js` boots every `index.html` script in `node:vm` with a stub DOM (red on the broken code, green after); moved the speech state above its first use; checked the rest of the start-up path for the same bug | all | — | 3.10 (hit its cap) |
+| 14 | test-first-fixer | Accessibility from our axe-core report (3 rules, 17-18 nodes): hidden label, h1, header + panel landmarks, aria-live round announcements, Escape closes panels, focus-visible; `test/a11y.test.js` | all | axe still found 2 nodes → run 15 | 2.78 |
+| 15 | test-first-fixer | h1 inside the header, heading order in Statistics → **axe 0 in all four states** | all | — | 0.91 |
+| 16 | claim-checker | Audited the claims in Bob's run 11–15 summaries against the code + checked behaviour against the prompts → `docs/reviews/round2-check.md`: 3 real bugs (F1–F3), 4 wrong line numbers/counts (F4–F7) | the verdicts | Ran out of budget right before writing; resumed with `-r`. The mode's `write_file` to `docs/reviews/` was refused, Bob tried the shell instead; its composed review was saved from the transcript by hand. | 2.58 + 1.66 resumed = 4.24 |
+| 17 | test-first-fixer | Fixed F1–F3: `shouldAnnounceTransition` (speech only when reminders are on and the round ended while running), `createEditSession` (note saved exactly once), 14 tests | all | Bob also switched the transitions default to Disabled (safer than asked; kept) | 1.65 |
+| — | (hand) | | | Design polish: round note moved to a centered underline field under the task picker (it floated mid-left), Test voice button styled like the app's buttons, `outline:none` removed so the focus ring shows, Edit note button styled as a secondary button, shorter placeholder for 390px phones | — |
+| 18 | test-first-fixer | Space/Escape typed into a text field no longer drive the timer shortcuts: `src/keys.js` `isTypingTarget`, 19 tests | all | — | 0.67 |
+| 19 | test-first-fixer | **Upstream bug** our browser test found (also in 17a5091): after a reload the task picker showed the first task while time was logged to the saved one. Root cause found by Bob (value set before the options existed); `src/tasks.js` `resolveSelectedTask`, 8 tests | all | — | 1.16 |
+
+**Where Bob was wrong in round 2 (and what caught it):** hook output parser (we ran it) · app broken on load
+(browser check → boot test) · speech for users who never opted in, speech on a manual skip, double-saved note
+(Claim Checker) · space in the note field starting the timer (demo recording). All fixed, each with tests.
+
+**Verification outside Bob:** `npm test` 144/144; browser click-through 35/35 on desktop and a 390px phone
+(`TEST-REPORT.md`); axe-core 0 violations in main, settings, statistics and tasks states (upstream 17a5091: 18).

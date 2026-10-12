@@ -1,0 +1,136 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tomodoro Tune-Up · IBM Bob, with receipts</title>
+<meta name="description" content="A student-sized IBM Bob toolkit (custom modes, a skill, hooks) used to ship real open-source requests for Tomodoro, with every claim checked.">
+<meta property="og:title" content="Tomodoro Tune-Up · IBM Bob, with receipts"><meta property="og:description" content="3 upstream requests shipped, 1 upstream bug fixed, 144 tests, axe 18 → 0. Every prompt and cost logged."><meta property="og:image" content="media/og.jpg">
+<link rel="icon" href="icons/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0b0d12;--panel:#12151c;--line:#232835;--text:#f2f4f8;--muted:#9aa3b2;--blue:#4589ff;--green:#42be65;--red:#fa4d56;--amber:#f1c21b;--tomato:#ff6b5b;--paper:#f7f3ea}
+*{box-sizing:border-box} html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',system-ui,sans-serif;line-height:1.55;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0;background:radial-gradient(900px 600px at 85% -5%,rgba(69,137,255,.14),transparent 60%),radial-gradient(700px 500px at -10% 30%,rgba(255,107,91,.07),transparent 60%);pointer-events:none;z-index:-1}
+a{color:inherit}
+.wrap{max-width:1120px;margin:0 auto;padding:0 28px}
+nav{display:flex;align-items:center;justify-content:space-between;padding:22px 0}
+.brand{font-weight:600;letter-spacing:-.01em;display:flex;align-items:center;gap:10px}
+.dot{width:12px;height:12px;border-radius:50%;background:var(--tomato);display:inline-block}
+nav .links a{color:var(--muted);text-decoration:none;margin-left:22px;font-size:15px} nav .links a:hover{color:var(--text)}
+.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:var(--blue)}
+.hero{display:grid;grid-template-columns:1.25fr .9fr;gap:56px;align-items:center;padding:56px 0 72px}
+h1{font-size:clamp(44px,6.4vw,84px);line-height:1;letter-spacing:-.03em;margin:18px 0 22px;font-weight:600}
+h1 em{font-style:normal;color:var(--blue)}
+.lede{font-size:20px;color:#c8cfdb;max-width:560px;margin:0 0 30px}
+.btns{display:flex;gap:12px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:10px;padding:13px 20px;border-radius:10px;text-decoration:none;font-weight:500;font-size:16px;border:1px solid var(--line);background:rgba(255,255,255,.03);transition:transform .15s,background .15s}
+.btn:hover{transform:translateY(-1px);background:rgba(255,255,255,.06)}
+.btn.primary{background:var(--blue);border-color:var(--blue);color:#fff} .btn.primary:hover{background:#5b97ff}
+.receipt{background:var(--paper);color:#1d1d1f;font-family:'IBM Plex Mono',monospace;font-size:15px;padding:28px 28px 34px;position:relative;box-shadow:0 30px 80px rgba(0,0,0,.45);transform:rotate(1.2deg)}
+.receipt::after{content:"";position:absolute;left:0;right:0;bottom:-12px;height:12px;background:radial-gradient(circle at 8px -2px,transparent 10px,var(--paper) 11px) repeat-x;background-size:16px 12px}
+.receipt .r{display:flex;justify-content:space-between;padding:5px 0} .receipt hr{border:0;border-top:2px dashed #bdb5a5;margin:12px 0}
+.receipt .ok{color:#198038;font-weight:500} .receipt .c{text-align:center} .receipt .s{color:#6b665c;font-size:13px}
+section{padding:64px 0;border-top:1px solid var(--line)}
+h2{font-size:clamp(30px,3.6vw,44px);letter-spacing:-.02em;line-height:1.1;margin:12px 0 14px;font-weight:600}
+.sub{color:var(--muted);font-size:18px;max-width:720px;margin:0 0 34px}
+.grid{display:grid;gap:18px} .g3{grid-template-columns:repeat(3,1fr)} .g2{grid-template-columns:repeat(2,1fr)}
+.card{background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.012));border:1px solid var(--line);border-radius:16px;padding:24px}
+.card h3{margin:10px 0 8px;font-size:21px;letter-spacing:-.01em} .card p{margin:0;color:var(--muted);font-size:16px}
+.tag{font-family:'IBM Plex Mono',monospace;font-size:12px;padding:4px 9px;border-radius:999px;border:1px solid var(--line);color:var(--muted);display:inline-block}
+.tag.g{color:var(--green);border-color:rgba(66,190,101,.4);background:rgba(66,190,101,.08)} .tag.b{color:#78a9ff;border-color:rgba(69,137,255,.45);background:rgba(69,137,255,.08)} .tag.a{color:var(--amber);border-color:rgba(241,194,27,.4);background:rgba(241,194,27,.06)} .tag.r{color:var(--red);border-color:rgba(250,77,86,.45);background:rgba(250,77,86,.07)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+.stat .n{font-size:64px;font-weight:600;letter-spacing:-.04em;line-height:1} .stat .l{color:var(--muted);font-size:15px;margin-top:8px}
+.shots{display:grid;grid-template-columns:1.6fr 1fr;gap:18px;margin-top:22px}
+figure{margin:0} figure img{width:100%;display:block;border-radius:12px;border:1px solid var(--line)} figcaption{color:var(--muted);font-size:14px;margin-top:8px}
+.mode{display:flex;gap:16px} .ic{flex:none;width:44px;height:44px;border-radius:11px;display:grid;place-items:center;font-weight:600}
+table{width:100%;border-collapse:collapse;font-size:15.5px} th{text-align:left;color:var(--muted);font-weight:500;font-size:13px;letter-spacing:.06em;text-transform:uppercase;padding:10px 12px;border-bottom:1px solid var(--line)}
+td{padding:12px;border-bottom:1px solid var(--line);vertical-align:top} .mono{font-family:'IBM Plex Mono',monospace} .num{text-align:right;white-space:nowrap}
+.pill{font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:#78a9ff;white-space:nowrap}
+.term{background:#0d1017;border:1px solid #2a3040;border-radius:14px;overflow:hidden} .term .bar{height:38px;background:#161a24;border-bottom:1px solid #232838;display:flex;align-items:center;gap:8px;padding:0 14px} .term .bar i{width:11px;height:11px;border-radius:50%;background:#3a4152}
+.term pre{margin:0;padding:18px 20px;font-family:'IBM Plex Mono',monospace;font-size:14px;line-height:1.7;color:#c9d1dd;overflow-x:auto}
+.cm{color:#6f7a8c} .cg{color:var(--green)} .cr{color:var(--red)} .ca{color:var(--amber)} .cb{color:#78a9ff}
+.wrong li{margin:0 0 12px;color:#c8cfdb} .wrong b{color:var(--text)}
+.bar18{height:14px;border-radius:7px;background:var(--red)} 
+video{width:100%;border-radius:14px;border:1px solid var(--line);background:#000;display:block}
+footer{padding:40px 0 60px;color:#6f7a8c;font-size:14px;border-top:1px solid var(--line)}
+@media (max-width:900px){.hero{grid-template-columns:1fr;padding-top:24px} .g3,.g2,.shots{grid-template-columns:1fr} .stats{grid-template-columns:repeat(2,1fr)} nav .links{display:none} .receipt{transform:none} table .hide{display:none} td,th{padding:10px 8px}}
+</style></head><body>
+<div class="wrap">
+<nav><div class="brand"><span class="dot"></span>Tomodoro Tune-Up</div><div class="links"><a href="#changes">What changed</a><a href="#kit">The kit</a><a href="#wrong">Where Bob was wrong</a><a href="#verify">Verify it</a></div></nav>
+<div class="hero">
+ <div>
+  <div class="eyebrow">AngelHack · Building with IBM Bob · Track 1: Explore, Fix, Build</div>
+  <h1>IBM Bob,<br><em>with receipts.</em></h1>
+  <p class="lede">We gave Bob a real open-source app that students use, Tomodoro (308★), and a rule: nothing counts unless it's proven. Bob built its own toolkit for that, then shipped the requests users had left open for years.</p>
+  <div class="btns"><a class="btn primary" href="index.html">Open the app →</a><a class="btn" href="#demo">Watch the 2-min demo</a><a class="btn" href="https://gitlab.com/davidj-builds/tomodoro-tune-up">Source + BOB-LOG</a></div>
+ </div>
+ <div class="receipt" aria-label="Summary">
+  <div class="c" style="font-weight:500;font-size:17px">TOMODORO TUNE-UP</div><div class="c s">round 2 · Oct 12, 2026</div><hr>
+  <div class="r"><span>upstream requests shipped</span><span>3</span></div>
+  <div class="r"><span>upstream bug fixed</span><span>1</span></div>
+  <div class="r"><span>unit + boot tests</span><span>144</span></div>
+  <div class="r"><span>browser flows passing</span><span>35/35</span></div>
+  <div class="r"><span>axe violations</span><span>18 → 0</span></div>
+  <div class="r"><span>Bob mistakes caught</span><span>6</span></div><hr>
+  <div class="r"><span>every prompt + cost</span><span class="ok">LOGGED</span></div>
+  <div class="r"><span>every claim</span><span class="ok">CHECKED</span></div><hr>
+  <div class="c s">baseline: lazy-guy/tomodoro @ 17a5091</div>
+ </div>
+</div>
+
+<section id="demo"><div class="eyebrow">Demo</div><h2>Two minutes, narrated.</h2>
+<video controls preload="metadata" poster="media/og.jpg" src="media/tomodoro-tuneup-demo-v2.mp4"></video></section>
+
+<section id="changes"><div class="eyebrow">What changed for students</div><h2>Real requests from real users, shipped.</h2>
+<p class="sub">Every item below came from the upstream issue tracker or from our own testing, and each one ships with tests.</p>
+<div class="grid g3">
+ <div class="card"><span class="tag g">#11 · shipped</span><h3>Spoken reminders</h3><p>“It snaps me out of my ADHD hyperfocus.” Tomodoro now says the time left every 1, 5, 10 or 30 minutes, and can announce round ends. Silent unless you turn it on.</p></div>
+ <div class="card"><span class="tag g">#8 · shipped</span><h3>Notes on focus rounds</h3><p>Write what you're working on; it's saved with the round, editable in your records, and carried in backups.</p></div>
+ <div class="card"><span class="tag g">#6 · shipped (round 1)</span><h3>A colour per subject</h3><p>Per-task colours in the statistics pie and bars, for the student with seven subjects.</p></div>
+ <div class="card"><span class="tag r">upstream bug · fixed</span><h3>Picker vs. logged task</h3><p>After a reload the picker showed the first task while time went to another. Found by our browser test; it's in the original app too.</p></div>
+ <div class="card"><span class="tag b">accessibility</span><h3>Every student can run a session</h3><p>Labels, landmarks, round announcements for screen readers, Escape closes panels, visible focus. axe-core: 18 → 0.</p></div>
+ <div class="card"><span class="tag">#13 · checked</span><h3>Already solved upstream</h3><p>Bob's Plan mode verified the autostart option exists (index.js:106, :156). Documented, not claimed.</p></div>
+</div>
+<div class="shots"><figure><img src="media/shot-speech.jpg" alt="Spoken Reminders settings in Tomodoro" loading="lazy"><figcaption>Settings → Spoken Reminders</figcaption></figure><figure><img src="media/shot-phone.jpg" alt="Tomodoro on a phone with the round note field" loading="lazy"><figcaption>The round note, on a 390px phone</figcaption></figure></div>
+</section>
+
+<section id="kit"><div class="eyebrow">Step 1 · Bob builds its own toolkit</div><h2>The Tune-Up Kit, committed in <span class="mono" style="color:#78a9ff">.bob/</span></h2>
+<p class="sub">Drop the folder into any repo. Bob wrote it (runs 8–9); one hook was added by hand after a Bob Shell memory issue on our 4 GB machine.</p>
+<div class="grid g3">
+ <div class="card mode"><div class="ic" style="background:rgba(69,137,255,.15);color:#78a9ff">S</div><div><h3 style="margin-top:0">Scout</h3><p>Read-only explorer. Every claim cites the file:line it opened; VERIFIED vs SUSPECTED.</p></div></div>
+ <div class="card mode"><div class="ic" style="background:rgba(66,190,101,.15);color:var(--green)">T</div><div><h3 style="margin-top:0">Test-First Fixer</h3><p>Must show a failing test before it changes code. No new dependencies, no build step.</p></div></div>
+ <div class="card mode"><div class="ic" style="background:rgba(241,194,27,.14);color:var(--amber)">C</div><div><h3 style="margin-top:0">Claim Checker</h3><p>Audits Bob's own output: CONFIRMED / WRONG / UNVERIFIABLE, with evidence.</p></div></div>
+</div>
+<div class="grid g2" style="margin-top:18px">
+ <div class="term"><div class="bar"><i></i><i></i><i></i></div><pre><span class="cm"># real output, Bob run 9</span>
+<span class="cm">●</span> write_file  test/hook.test.js   <span class="cm">(failing test first)</span>
+<span class="ca">hook ›</span> tests: 0 passed, 0 failed  <span class="cr">← 29 exist</span>
+<span class="cb">npm test ›</span> pass 29  fail 1  <span class="cr">✖ hook.test.js</span>
+<span class="cm">●</span> write_file  .bob/hooks/summarize.cjs
+<span class="ca">hook ›</span> <span class="cg">tests: 38 passed, 0 failed ✓</span></pre></div>
+ <div class="card"><h3 style="margin-top:0">Also in the kit</h3><p style="margin-bottom:10px"><b style="color:var(--text)">issue-to-fix skill</b> — restate, locate with file:line, failing test, fix, README bullet naming the issue.</p><p style="margin-bottom:10px"><b style="color:var(--text)">PostToolUse hook</b> — after every file Bob writes, the whole suite runs and Bob sees the score.</p><p style="margin-bottom:10px"><b style="color:var(--text)">PreToolUse shell guard</b> — blocks one command shape that crashed Bob Shell here.</p><p><b style="color:var(--text)">House rules</b> — upstream's code style, cite file:line, minimal changes.</p></div>
+</div></section>
+
+<section id="pipeline"><div class="eyebrow">Step 2 · every change through the kit</div><h2>Twelve Bob runs, all logged.</h2>
+<p class="sub">Costs are the Bobcoins Bob reported. Prompts, full event streams and Bob's last words for every run are in <span class="mono">docs/bob-runs/</span>.</p>
+<div class="card" style="padding:6px 8px;overflow-x:auto"><table><thead><tr><th>Run</th><th>Mode</th><th>What Bob did</th><th class="num">Bobcoins</th></tr></thead><tbody><tr><td class="mono">8</td><td><span class="pill">agent + built-in skills</span></td><td>Bob writes the Tune-Up Kit: 3 custom modes, house rules, the issue-to-fix skill, a test-after-write hook</td><td class="mono num">≈1.0</td></tr><tr><td class="mono">9</td><td><span class="pill">Test-First Fixer</span></td><td>Fixes its own hook (it always said “0 tests”): failing test first, then the parser</td><td class="mono num">0.73</td></tr><tr><td class="mono">10</td><td><span class="pill">Plan</span></td><td>Plan for #11 and #8 with file:line touch points; proves #13 is already solved upstream</td><td class="mono num">0.39</td></tr><tr><td class="mono">11</td><td><span class="pill">Test-First Fixer + skill</span></td><td>Issue #11 spoken reminders, 27 tests</td><td class="mono num">2.05</td></tr><tr><td class="mono">12</td><td><span class="pill">Test-First Fixer + skill</span></td><td>Issue #8 notes on focus rounds, notes kept in backups</td><td class="mono num">3.05</td></tr><tr><td class="mono">13</td><td><span class="pill">Test-First Fixer</span></td><td>Boot test that loads the whole app in node:vm; fixes the load crash</td><td class="mono num">3.10</td></tr><tr><td class="mono">14–15</td><td><span class="pill">Test-First Fixer</span></td><td>Accessibility: axe 18 → 0</td><td class="mono num">3.69</td></tr><tr><td class="mono">16</td><td><span class="pill">Claim Checker</span></td><td>Audits Bob's own summaries: 3 real bugs, 4 wrong claims</td><td class="mono num">4.24</td></tr><tr><td class="mono">17</td><td><span class="pill">Test-First Fixer</span></td><td>Fixes the 3 bugs Claim Checker found</td><td class="mono num">1.65</td></tr><tr><td class="mono">18</td><td><span class="pill">Test-First Fixer</span></td><td>Space/Escape inside text fields stop driving the timer</td><td class="mono num">0.67</td></tr><tr><td class="mono">19</td><td><span class="pill">Test-First Fixer</span></td><td>Upstream bug: task picker vs logged task after reload</td><td class="mono num">1.16</td></tr></tbody></table></div></section>
+
+<section id="wrong"><div class="eyebrow">Where Bob was wrong</div><h2>And what caught it.</h2>
+<div class="grid g2"><ul class="wrong card" style="padding-left:40px">
+ <li><b>Its own hook reported 0 tests.</b> We ran it; Bob fixed it test-first.</li>
+ <li><b>Spoken reminders passed 92 unit tests, but the app wouldn't load.</b> A browser check caught it; Bob wrote a boot test so it can't happen again.</li>
+ <li><b>Speech for people who never opted in; speech on a manual skip; a note saved twice.</b> Claim Checker found all three.</li>
+ <li><b>A space typed in the new note field started the timer.</b> Caught while recording the demo.</li>
+</ul>
+<div class="card"><h3 style="margin-top:0">Accessibility, measured</h3><p>axe-core 4, default rules, main + settings + statistics + tasks.</p>
+<div style="display:flex;align-items:center;gap:14px;margin-top:20px"><span class="mono" style="width:120px;color:var(--muted)">upstream</span><div class="bar18" style="width:72%"></div><b>18</b></div>
+<div style="display:flex;align-items:center;gap:14px;margin-top:12px"><span class="mono" style="width:120px;color:var(--muted)">round 2</span><div class="bar18" style="width:2px;background:var(--green)"></div><b style="color:var(--green)">0</b></div></div></div></section>
+
+<section id="verify"><div class="eyebrow">Don't trust us either</div><h2>Verify it in one minute.</h2>
+<div class="grid g2"><div class="term"><div class="bar"><i></i><i></i><i></i></div><pre><span class="cm"># clone, then:</span>
+npm test               <span class="cm"># 144 tests, zero dependencies</span>
+python3 -m http.server <span class="cm"># the app, no build step</span>
+bob run --mode claim-checker "check BOB-LOG.md"</pre></div>
+<div class="card"><p style="color:#c8cfdb">Full write-ups in the repo: <span class="mono">README.md</span> (what changed), <span class="mono">BOB-LOG.md</span> (every prompt, cost and hand correction), <span class="mono">TEST-REPORT.md</span> (35 browser flows + axe), <span class="mono">docs/TUNEUP-KIT.md</span>, <span class="mono">docs/reviews/round2-check.md</span>, <span class="mono">docs/BOB-SHELL-NOTES.md</span>.</p><div class="btns" style="margin-top:18px"><a class="btn primary" href="index.html">Open the app →</a><a class="btn" href="https://gitlab.com/davidj-builds/tomodoro-tune-up">Repository</a></div></div></div></section>
+</div>
+<footer><div class="wrap">Tomodoro is by <a href="https://github.com/lazy-guy/tomodoro">lazy-guy</a> (MIT). This fork and report by David J for AngelHack × IBM “Building with IBM Bob”, built with IBM Bob Shell and an AI assistant that wrote prompts, checked Bob's claims and ran the browser tests. Demo narration is text-to-speech. No user counts or testimonials are claimed.</div></footer>
+</body></html>
