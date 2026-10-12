@@ -1245,3 +1245,62 @@ video.pipactive {
 	vertical-align: middle;
 	flex-shrink: 0;
 }
+
+#round-note-area {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 4px;
+	margin-top: 8px;
+}
+
+#round-note-area label {
+	font-size: 13px;
+	color: var(--coloraccent);
+}
+
+#round-note {
+	background-color: var(--bgcolor2);
+	color: var(--color);
+	border: 1px solid var(--coloraccent);
+	border-radius: 5px;
+	padding: 5px 10px;
+	font-size: 14px;
+	width: min(320px, 90vw);
+	outline: none;
+}
+
+#round-note:focus {
+	border-color: var(--color);
+}
+
+.round-entry-note {
+	font-size: 14px;
+	color: var(--coloraccent);
+	margin-top: 6px;
+	min-height: 1.2em;
+	word-break: break-word;
+}
+
+.entry-edit-note {
+	margin-top: 6px;
+	background-color: var(--bgcolor2);
+	color: var(--coloraccent);
+	border: 1px solid var(--coloraccent);
+	font-size: 14px;
+	padding: 3px 8px;
+	border-radius: 5px;
+	cursor: pointer;
+}
+
+.round-entry-note-input {
+	background-color: var(--bgcolor2);
+	color: var(--color);
+	border: 1px solid var(--coloraccent);
+	border-radius: 5px;
+	padding: 4px 8px;
+	font-size: 14px;
+	width: 100%;
+	outline: none;
+	margin-top: 6px;
+}

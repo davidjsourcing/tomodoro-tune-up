@@ -176,3 +176,34 @@ test("normalizeBackup: empty array returns empty records and tasks with 0 skippe
 	assert.deepEqual(result.tasks, []);
 	assert.equal(result.skipped, 0);
 });
+
+// ---------------------------------------------------------------------------
+// 7. Optional note field m
+// ---------------------------------------------------------------------------
+test("normalizeBackup: m string is kept on records that have it", function () {
+	var input = [{ t: 25, d: 1000, n: "Work", m: "deep focus" }];
+	var result = normalizeBackup(input);
+	assert.equal(result.records.length, 1);
+	assert.equal(result.records[0].m, "deep focus");
+});
+
+test("normalizeBackup: m is absent when entry has no m field", function () {
+	var input = [{ t: 25, d: 1000, n: "Work" }];
+	var result = normalizeBackup(input);
+	assert.equal(result.records.length, 1);
+	assert.equal("m" in result.records[0], false);
+});
+
+test("normalizeBackup: non-string m is dropped (not propagated)", function () {
+	var input = [{ t: 25, d: 1000, n: "Work", m: 42 }];
+	var result = normalizeBackup(input);
+	assert.equal(result.records.length, 1);
+	assert.equal("m" in result.records[0], false);
+});
+
+test("normalizeBackup: m too long is cut to 280 chars", function () {
+	var input = [{ t: 25, d: 1000, n: "Work", m: "x".repeat(300) }];
+	var result = normalizeBackup(input);
+	assert.equal(result.records.length, 1);
+	assert.equal(result.records[0].m.length, 280);
+});

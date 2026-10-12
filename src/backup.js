@@ -2,6 +2,18 @@
 	"use strict";
 
 	/**
+	 * Sanitize a note string: collapse whitespace, trim, cut to maxLen.
+	 * Used when TomodoroNotes is not yet loaded (e.g. in Node tests).
+	 */
+	function _sanitizeNote(s, maxLen) {
+		if (typeof s !== "string") return null;
+		if (typeof maxLen !== "number") maxLen = 280;
+		s = s.replace(/\s+/g, " ").trim();
+		if (s.length > maxLen) s = s.slice(0, maxLen);
+		return s;
+	}
+
+	/**
 	 * Normalise a parsed backup JSON value into usable records.
 	 *
 	 * @param {*} parsed - The value obtained from JSON.parse() on a backup file.
@@ -61,7 +73,17 @@
 			}
 			seenD[d] = true;
 
-			records.push({ t: t, d: d, n: n });
+			var rec = { t: t, d: d, n: n };
+			// Carry optional note field m — sanitize to 280 chars
+			var sanitizer = (root && root.TomodoroNotes) ? root.TomodoroNotes.sanitizeNote : _sanitizeNote;
+			var rawM = entry.m;
+			if (typeof rawM === "string") {
+				var cleanM = sanitizer(rawM, 280);
+				if (typeof cleanM === "string" && cleanM.length > 0) {
+					rec.m = cleanM;
+				}
+			}
+			records.push(rec);
 
 			if (tasks.indexOf(n) === -1) {
 				tasks.push(n);

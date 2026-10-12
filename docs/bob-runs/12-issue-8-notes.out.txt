@@ -1,0 +1,1 @@
+Now add CSS styles for `#round-note-area`, `#round-note`, and `.round-entry-note`:

@@ -654,19 +654,30 @@ function deleteRecord(d) {
 	db.transaction("records", "readwrite").objectStore("records").delete(d);
 }
 
+function updateRecordNote(d, note) {
+	let store = db.transaction("records", "readwrite").objectStore("records");
+	let req = store.get(d);
+	req.onsuccess = function () {
+		if (!req.result) return;
+		let updated = TomodoroNotes.withNote(req.result, note);
+		store.put(updated);
+	};
+}
+
 function saveTasks() {
 	localStorage.setItem("pomo-tasks", JSON.stringify(tasks));
 }
+
+let roundNoteInput = document.getElementById("round-note");
 
 function focusEnd(t) {
 	let minutes = Math.round(t / 60);
 	if (minutes <= 0) return;
 	if (tasks.includes(selectedTask)) {
-		saveRecord({
-			t: minutes,
-			d: Date.now(),
-			n: selectedTask,
-		});
+		let base = { t: minutes, d: Date.now(), n: selectedTask };
+		let record = TomodoroNotes.withNote(base, roundNoteInput.value);
+		saveRecord(record);
+		roundNoteInput.value = "";
 	}
 }
 
@@ -959,6 +970,40 @@ function roundEntryGen(entry) {
 	let roundEntryTime = document.createElement("div");
 	roundEntryTime.className = "round-entry-time";
 	roundEntryTime.innerText = format.format(entry.d);
+	// Note display
+	let noteDisplay = document.createElement("div");
+	noteDisplay.className = "round-entry-note";
+	noteDisplay.innerText = TomodoroNotes.noteFromRecord(entry);
+	// Edit note button
+	let editNoteBtn = document.createElement("button");
+	editNoteBtn.className = "entry-edit-note";
+	editNoteBtn.innerText = "Edit note";
+	editNoteBtn.addEventListener("click", function () {
+		let input = document.createElement("input");
+		input.type = "text";
+		input.className = "round-entry-note-input";
+		input.maxLength = 280;
+		input.value = TomodoroNotes.noteFromRecord(entry);
+		function saveEdit() {
+			let sanitized = TomodoroNotes.sanitizeNote(input.value);
+			updateRecordNote(entry.d, sanitized);
+			entry.m = sanitized || undefined;
+			noteDisplay.innerText = sanitized;
+			input.replaceWith(noteDisplay);
+			editNoteBtn.style.display = "";
+		}
+		input.addEventListener("keydown", function (e) {
+			if (e.key === "Enter") { saveEdit(); }
+			if (e.key === "Escape") {
+				input.replaceWith(noteDisplay);
+				editNoteBtn.style.display = "";
+			}
+		});
+		input.addEventListener("blur", saveEdit);
+		editNoteBtn.style.display = "none";
+		noteDisplay.replaceWith(input);
+		input.focus();
+	});
 	let entryDelete = document.createElement("button");
 	entryDelete.className = "entry-delete";
 	entryDelete.innerText = "Delete";
@@ -969,7 +1014,7 @@ function roundEntryGen(entry) {
 		roundEntry.remove();
 		loadStatistics(false);
 	});
-	roundEntry.append(roundEntryName, roundEntryDuration, roundEntryTime, entryDelete);
+	roundEntry.append(roundEntryName, roundEntryDuration, roundEntryTime, noteDisplay, editNoteBtn, entryDelete);
 	return roundEntry;
 }
 

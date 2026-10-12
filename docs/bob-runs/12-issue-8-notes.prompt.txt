@@ -1,0 +1,12 @@
+Use the issue-to-fix skill and follow docs/plans/round2.md (Issue #8 section). Implement upstream issue #8 "notes on focus round records" test-first. Record objects look like { t: minutes, d: Date.now() timestamp key, n: task name }; add an optional note field m (string).
+
+Requirements (decided, do not ask):
+- src/notes.js (classic script, window.TomodoroNotes + CommonJS tail): sanitizeNote(raw, maxLen = 280) -> trimmed string, internal runs of whitespace kept but newlines collapsed to single spaces, cut to maxLen; noteFromRecord(record) -> string ("" when missing or not a string); withNote(record, note) -> a NEW record object with m set (or m removed when the sanitized note is empty), never mutating the input.
+- test/notes.test.js covering every branch, including non-string input, long input, records without m, and immutability.
+- "Note for this round" on the main screen: a single-line <input id="round-note" maxlength="280" placeholder="What are you working on? (optional)"> with a visible label, under the task selector area in index.html, styled with the existing CSS variables so it matches the theme. In focusEnd(), save the sanitized note into the record (via withNote) and then clear the input.
+- Records list (roundEntryGen in index.js): show the note under the entry (class round-entry-note) and an "Edit note" button that swaps in an <input> (Enter or blur saves, Escape cancels). Saving calls a new updateRecordNote(d, note) that does get + put in ONE readwrite transaction on the records store (key is d).
+- Backups: src/backup.js normalizeBackup keeps a valid string m (sanitized with the same 280 limit when TomodoroNotes is available, else trimmed and cut) and drops invalid ones; extend test/backup.test.js for: m kept, m missing, m non-string dropped, m too long cut.
+- Add <script src="./src/notes.js"></script> before index.js (and before src/backup.js if backup uses it), add it to the sw.js cache list and bump the cache version.
+- index.css: small styles for #round-note and .round-entry-note using existing variables.
+- README "What was added or fixed": one bullet naming #8.
+Write the failing tests first and show them failing, then implement, then npm test (one simple command per call).
