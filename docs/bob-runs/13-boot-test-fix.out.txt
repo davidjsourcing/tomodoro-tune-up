@@ -1,0 +1,16 @@
+`focusEnd()` reads `tasks` (declared at line 566), `selectedTask` (line 568), `TomodoroNotes`, `roundNoteInput` (line 671), `saveRecord` (function declared at ~line 634).
+
+**But is `focusEnd()` ever called during startup?**
+
+`focusEnd()` is only called from `nextRound()` at line 140, which is only called from:
+1. `setTime()` when `seconds < 0` (line 75) — but at startup `seconds = 1500`, so NOT called
+2. The timer worker message handler (line 93-100) — NOT fired at startup
+3. Direct button click handlers — NOT fired at startup
+4. `pauseplay()` when `roundInfo.current === "none"` — NOT possible at startup since `current = "focus"`
+
+So `focusEnd()`, `fadeOut()`, `fadeIn()` are never called during the startup path. The only startup call chain is:
+1. `setup()` at line 307 → `setTime()` → checks `speechInterval` (now fixed ✅) and `speechTransitions` (now fixed ✅)
+
+Let me also verify `nextRound()` is unreachable at startup by confirming the `seconds < 0` path cannot trigger. At startup: `roundInfo = { t: 0, current: "focus" }`, `config.focus = 1500`, so `seconds = 1500 - 0 = 1500 > 0`. ✅ confirmed.
+
+Let me also check if there's a `loop` variable declared with `let/const` that could be TDZ-unsafe (line 1697 is a `function` declaration so it's hoisted, but I saw `loop: undefined` in the context stub, which means maybe there's a `let loop`):

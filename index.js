@@ -64,6 +64,9 @@ let roundInfo = {
 	running: false,
 };
 
+let speechInterval = 0;
+let speechTransitions = true;
+
 //#region Time
 
 function setTime() {
@@ -335,9 +338,6 @@ if (localStorage.getItem("pomo-audio-volume")) {
 volumeSliderDisplay();
 
 //#region Speech
-
-let speechInterval = 0;
-let speechTransitions = true;
 
 let speechIntervalSelect = document.getElementById("speech-interval");
 let speechTransitionsSelect = document.getElementById("speech-transitions");
