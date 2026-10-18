@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Unit + boot + kit tests
+        run: npm test
+
+      - name: Browser flows + accessibility
+        run: |
+          cd docs/e2e
+          npm init -y
+          npm i --no-save playwright-core axe-core
+          npx playwright-core install --with-deps chromium
+          python3 -m http.server 8080 --directory ../.. &
+          SERVER_PID=$!
+          for i in $(seq 1 20); do
+            curl -sf http://127.0.0.1:8080/index.html > /dev/null && break
+            sleep 1
+          done
+          node e2e.js http://127.0.0.1:8080/index.html /tmp/e2e
+          node axe4.js http://127.0.0.1:8080/index.html /tmp/axe.json
+          kill $SERVER_PID || true
+
+      - name: Upload receipts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: receipts
+          path: |
+            /tmp/e2e
+            /tmp/axe.json

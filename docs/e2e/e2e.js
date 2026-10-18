@@ -143,4 +143,5 @@ const results=[]; const ok=(name,pass,detail='')=>{ results.push({name,pass:!!pa
  await b.close();
  fs.writeFileSync(SHOTS+'/results.json', JSON.stringify(results,null,1));
  console.log(results.filter(r=>r.pass).length+'/'+results.length+' passed');
+ if (results.some(r=>!r.pass)) process.exitCode = 1;
 })().catch(e=>{ console.error('E2E CRASH', e); process.exit(1); });

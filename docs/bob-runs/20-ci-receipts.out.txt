@@ -1,0 +1,19 @@
+**`ℹ tests 149 | pass 149 | fail 0`**
+
+---
+
+## Summary of every file created or changed
+
+### Created
+| File | What it does |
+|------|-------------|
+| [`test/kit.test.js`](test/kit.test.js) | 5 `node:test` tests that drive both hooks by piping a JSON event on stdin: 3 for `shell-guard.mjs` (allowed, blocked with reason text, non-execute_command), 2 for `test-after-write.mjs` (`.md` path → silent exit 0; `.js` path in an isolated tmpdir with 2 passing + 1 failing test → summary "2 passed, 1 failed"). Strips `NODE_TEST_CONTEXT` from the child env so the hook's own `node --test` sub-process emits TAP instead of piping to the parent runner. |
+| [`.github/workflows/ci.yml`](.github/workflows/ci.yml) | GitHub Actions CI on every push and PR: node 24, `npm test`, then full browser/a11y run with Playwright + axe-core served by `python3 -m http.server`, uploads `/tmp/e2e` + `/tmp/axe.json` as artifact `receipts` (always). |
+| [`.github/workflows/pages.yml`](.github/workflows/pages.yml) | GitHub Pages deploy on push to `main`; no build step; `configure-pages@v5 → upload-pages-artifact@v3 → deploy-pages@v4`; permissions `pages: write, id-token: write`. |
+| [`.gitlab-ci.yml`](.gitlab-ci.yml) | GitLab CI mirror — single `test` job on `node:24`, runs `npm test`. |
+
+### Changed
+| File | Change |
+|------|--------|
+| [`docs/e2e/e2e.js`](docs/e2e/e2e.js:146) | Added `if (results.some(r=>!r.pass)) process.exitCode = 1;` after the summary log — the process now exits non-zero when any check failed. |
+| [`docs/e2e/axe4.js`](docs/e2e/axe4.js:25) | Added `if (list.length > 0) process.exitCode = 1;` before `await b.close()` — the process now exits non-zero when any accessibility violation is found. |

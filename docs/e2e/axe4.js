@@ -22,4 +22,5 @@ const merged={}; for(const [s,vs] of Object.entries(all)) for(const v of vs){ me
 const list=Object.values(merged).map(v=>({...v,targets:[...v.targets],nodes:v.targets.size}));
 fs.writeFileSync(out, JSON.stringify({by_state:all, merged:list},null,1));
 console.log(list.length+' rules, '+list.reduce((a,v)=>a+v.nodes,0)+' unique nodes'); list.forEach(v=>console.log(v.impact, v.id, v.nodes, v.help, v.targets.slice(0,4).join(' | ')));
+if (list.length > 0) process.exitCode = 1;
 await b.close(); })();

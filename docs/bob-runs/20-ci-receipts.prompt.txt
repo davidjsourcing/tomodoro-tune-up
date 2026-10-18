@@ -1,0 +1,15 @@
+Test-First Fixer workflow. Round 3 goal: make the receipts run on every push, so a judge does not have to trust our TEST-REPORT.md.
+
+Problem found by reading our own harness: docs/e2e/e2e.js prints "FAIL | ..." lines but always exits 0 (look at its last lines), and docs/e2e/axe4.js exits 0 even when it finds violations. So a CI job built on them could never go red. Also nothing checks that the Tune-Up Kit's hooks still work when someone drops .bob/ into their repo.
+
+Do this, one simple command per call:
+1. Add test/kit.test.js (node:test, zero dependencies) that drives the kit hooks exactly the way Bob calls them, by piping a JSON event on stdin:
+   a. .bob/hooks/shell-guard.mjs with a PreToolUse event for execute_command "npm test" -> allowed; with "node --version && npm test 2>&1 | tail -20" -> blocked, with the reason text Bob reads. Read the hook first and assert its real output format (cite file:line).
+   b. .bob/hooks/test-after-write.mjs with a PostToolUse event for a .md path -> prints nothing and exits 0; for a .js path -> prints the "tests: N passed, M failed" summary. IMPORTANT: do NOT point the .js case at this repo, or the hook would run the whole suite, which contains this test, forever. Create a temporary directory (fs.mkdtempSync in os.tmpdir()) holding test/ok.test.js with 2 passing tests and test/bad.test.js with 1 failing test, pass that directory as the event's cwd, and assert the summary says 2 passed, 1 failed.
+   Show the new tests running (they may be green at once because they pin existing behaviour; say so honestly if they are).
+2. Make the e2e harness able to fail: at the end of docs/e2e/e2e.js set process.exitCode = 1 when any result failed; at the end of docs/e2e/axe4.js set process.exitCode = 1 when the merged list has any violation. Keep everything else in those files unchanged.
+3. Add .github/workflows/ci.yml: on push and pull_request; ubuntu-latest; actions/checkout@v4, actions/setup-node@v4 with node-version 24; step "Unit + boot + kit tests": npm test; step "Browser flows + accessibility": cd docs/e2e && npm init -y && npm i --no-save playwright-core axe-core && npx playwright-core install --with-deps chromium, then serve the repo root with python3 -m http.server 8080 in the background, wait until it answers, run node e2e.js http://127.0.0.1:8080/index.html /tmp/e2e and node axe4.js http://127.0.0.1:8080/index.html /tmp/axe.json from docs/e2e; upload /tmp/e2e and /tmp/axe.json as an artifact named receipts (actions/upload-artifact@v4, if: always()).
+4. Add .github/workflows/pages.yml that deploys the static app to GitHub Pages on push to main (actions/configure-pages@v5, actions/upload-pages-artifact@v3 with path ".", actions/deploy-pages@v4; permissions pages: write, id-token: write). No build step.
+5. Add .gitlab-ci.yml for the GitLab mirror with one job "test" on image node:24 running npm test.
+6. Run npm test and paste the summary line. Do not touch package.json, the app files, LICENSE.md or any png. Do not add a dependency.
+Finish with a short list of every file you created or changed.
