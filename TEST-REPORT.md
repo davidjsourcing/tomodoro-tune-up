@@ -1,4 +1,20 @@
-# TEST-REPORT — Tomodoro Tune-Up, round 2 (Oct 12, 2026)
+# TEST-REPORT — Tomodoro Tune-Up
+
+## Round 3 (Oct 18, 2026): the same checks, now run by CI on every push
+
+| Where | Run | Result |
+|---|---|---|
+| GitHub Actions `CI`, commit fd02d74 | https://github.com/davidjsourcing/tomodoro-tune-up/actions/runs/39082539678 | `npm test` **160/160**; browser flows **35/35**; axe-core **0** violations |
+| GitHub Actions `Bob Claim Checker`, commit fd02d74 | https://github.com/davidjsourcing/tomodoro-tune-up/actions/runs/39082541542 | 22 CONFIRMED · 0 WRONG · 1 UNVERIFIABLE (0.23 Bobcoins) |
+| GitLab CI (mirror), commit fd02d74 | pipeline 2959355607 | `npm test` passed |
+| GitHub Pages deploy + 35 flows against https://davidjsourcing.github.io/tomodoro-tune-up/index.html | run 39082539700 + local Playwright | deployed; **35/35** |
+| Gate check: `index.html` with `lang` removed | local | `axe4.js` exit 1 (`html-has-lang`), so CI can go red |
+
+New test files: `test/kit.test.js` (5), `test/verdict.test.js` (11). The round-2 report below is unchanged.
+
+---
+
+# Round 2 (Oct 12, 2026)
 
 Everything below was run on the final round-2 code (the commit that adds this file) on Linux, Node 24, Chromium headless.
 

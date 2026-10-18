@@ -187,3 +187,25 @@ Bob Shell was run headless (`bob run -f stream-json --mode <mode> --max-cost N`)
 
 **Verification outside Bob:** `npm test` 144/144; browser click-through 35/35 on desktop and a 390px phone
 (`TEST-REPORT.md`); axe-core 0 violations in main, settings, statistics and tasks states (upstream 17a5091: 18).
+
+
+# Round 3 — Oct 18, 2026 (00:14–00:24 UTC): "the receipts run themselves"
+
+Goal: stop asking judges to trust `TEST-REPORT.md`. Every push now re-runs the tests, the browser flows and axe-core on
+GitHub's machines, and Bob's own Claim Checker mode runs in CI. Same honesty rules: prompts, full event streams and Bob's
+final words are in `docs/bob-runs/20-*` to `22-*`; costs are the session costs Bob reported. Bob Shell 2.0.6, headless,
+Linux. Round 3 total ≈ 4.3 Bobcoins (one 0.02 sign-in check, runs 20–22, one CI run).
+
+| Run | Mode | What Bob did | Kept | Corrected by hand / what went wrong | Cost |
+|---|---|---|---|---|---|
+| 20 | test-first-fixer | Found nothing could go red: `docs/e2e/e2e.js` and `axe4.js` always exited 0. Made both exit 1 on a failed flow / any violation; `test/kit.test.js` (5 tests) drives the kit hooks with JSON on stdin like Bob does, using a temporary project for the test hook so it cannot recurse into this suite; it also found that a hook started from inside `node --test` needs `NODE_TEST_CONTEXT` removed to print TAP; wrote `.github/workflows/ci.yml`, `pages.yml` (GitHub Pages) and `.gitlab-ci.yml` | all | The shell guard blocked one of Bob's commands (chained + piped); Bob retried with a simple one. We checked the gate both ways: an `index.html` without `lang` made `axe4.js` exit 1. | 2.24 |
+| 21 | test-first-fixer | Claim Checker in CI: `.github/workflows/bob-claim-check.yml` installs Bob Shell headless, runs `--mode claim-checker --max-cost 1.5` on the newest commit, writes verdicts to the job summary, skips cleanly without the secret; `.bob/ci/verdict.cjs` + `test/verdict.test.js` (written first, shown red) | all | By hand: checkout uses the pull request's head commit (GitHub's default for PRs is a merge commit, whose message has no claims). Two bugs in Bob's `verdict.cjs` found when we ran it on a real stream → run 22. | 1.19 |
+| 22 | test-first-fixer | Fixed both: streamed chunks joined with `"\n"` instead of `""` (a verdict word split across chunks would not be counted), cost printed as `$` instead of Bobcoins; 3 tests first (2 red), then green | all | — | 0.58 |
+| CI | claim-checker (GitHub Actions, workflow_dispatch) | Audited commit `fd02d74`'s message against its diff: **22 CONFIRMED, 0 WRONG, 1 UNVERIFIABLE** ("test written first" cannot be proven from one commit; it is in the run log). 12 tool calls. Saved: `docs/reviews/round3-ci-claim-check.md` + `.stream.jsonl` | the verdicts | — | 0.23 |
+
+**Where Bob was wrong in round 3 (and what caught it):** the CI report it wrote split Bob's own answer into fragments
+and labelled Bobcoins as dollars — caught by running it on a real stream instead of the sample its test used.
+
+**Verification outside Bob:** GitHub Actions `CI` on `fd02d74`: 160/160 tests, 35/35 browser flows, axe 0; GitLab
+pipeline on the mirror: passed; GitHub Pages deploy: passed, and the 35 flows also pass against
+https://davidjsourcing.github.io/tomodoro-tune-up/index.html.

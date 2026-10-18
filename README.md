@@ -10,13 +10,36 @@ A pomodoro web app with PIP mode, white noise generation, tasks and more!
 
 This is a fork of [lazy-guy/tomodoro](https://github.com/lazy-guy/tomodoro), submitted to the
 **AngelHack "Building with IBM Bob" hackathon, Track 1: Explore, Fix, and Build**.
-Upstream baseline commit: **17a5091**. Everything after it was made during the hackathon window (Oct 11-12, 2026).
+Upstream baseline commit: **17a5091**. Everything after it was made during the hackathon window (Oct 11-12 and Oct 18, 2026).
 
 > **Prove every claim, or it doesn't ship.** AI writes real code now, and it sounds just as sure when it's wrong.
 > So I gave IBM Bob a real open-source app that students use and one rule: nothing counts unless it's proven.
 
-**Live:** https://tomodoro-bob.sites.tab.bot/tuneup.html (the Tune-Up report) · https://tomodoro-bob.sites.tab.bot/ (the app)
+[![CI](https://github.com/davidjsourcing/tomodoro-tune-up/actions/workflows/ci.yml/badge.svg)](https://github.com/davidjsourcing/tomodoro-tune-up/actions/workflows/ci.yml) [![Bob Claim Checker](https://github.com/davidjsourcing/tomodoro-tune-up/actions/workflows/bob-claim-check.yml/badge.svg)](https://github.com/davidjsourcing/tomodoro-tune-up/actions/workflows/bob-claim-check.yml) [![Pages](https://github.com/davidjsourcing/tomodoro-tune-up/actions/workflows/pages.yml/badge.svg)](https://davidjsourcing.github.io/tomodoro-tune-up/)
+
+**Live:** https://tomodoro-bob.sites.tab.bot/tuneup.html (the Tune-Up report) · https://tomodoro-bob.sites.tab.bot/ (the app) · also on GitHub Pages: https://davidjsourcing.github.io/tomodoro-tune-up/
 **Demo video (2:29):** [`media/tomodoro-tuneup-demo-v3.mp4`](media/tomodoro-tuneup-demo-v3.mp4) · **Pitch deck:** [`submission/pitch-deck.pdf`](submission/pitch-deck.pdf) · **Code:** GitHub `davidjsourcing/tomodoro-tune-up` (mirror on GitLab `davidj-builds/tomodoro-tune-up`)
+
+### Round 3 (Oct 18): the receipts run themselves
+
+You should not have to trust our test report, so now nothing depends on it:
+
+- **CI on every push** ([`ci.yml`](.github/workflows/ci.yml)): `npm test` (**160** tests), then the **35** browser flows and
+  axe-core in Chromium on GitHub's machines; screenshots and the axe report are uploaded as the `receipts` artifact.
+  Bob (run 20) found the harness could never fail (it always exited 0) and fixed that first.
+- **Bob's Claim Checker in CI** ([`bob-claim-check.yml`](.github/workflows/bob-claim-check.yml)): on every pull request
+  (and on demand) Bob Shell installs headless and runs the `claim-checker` mode on the newest commit's message and diff,
+  capped at 1.5 Bobcoins, and writes CONFIRMED / WRONG / UNVERIFIABLE lines to the job summary. Its first run audited
+  commit `fd02d74`: **22 confirmed, 0 wrong, 1 unverifiable** ([`docs/reviews/round3-ci-claim-check.md`](docs/reviews/round3-ci-claim-check.md)).
+  Pull requests from forks get no secrets, so there the job skips with a note.
+- **Kit self-test** ([`test/kit.test.js`](test/kit.test.js)): the two hooks are driven exactly the way Bob calls them
+  (a JSON event on stdin), so anyone who copies `.bob/` into their repo can check it works.
+- **Deploy files**: [`pages.yml`](.github/workflows/pages.yml) publishes the app to GitHub Pages;
+  [`.gitlab-ci.yml`](.gitlab-ci.yml) runs the tests on the GitLab mirror.
+- Bob was wrong once more, and running its code on real data caught it: the CI report it wrote split Bob's own answer
+  into fragments and showed Bobcoins as dollars. Fixed test-first in run 22.
+
+Bob runs 20-22 + one CI run, ≈4.3 Bobcoins, all in [`BOB-LOG.md`](BOB-LOG.md).
 
 ### Round 2 (Oct 12): IBM Bob, with receipts
 
@@ -131,6 +154,15 @@ Requires **Node.js 20+**. No npm dependencies; the test suite uses the built-in
 npm test
 ```
 
+Browser flows + accessibility (what CI runs):
+
+```bash
+cd docs/e2e && npm init -y && npm i --no-save playwright-core axe-core && npx playwright-core install chromium
+python3 -m http.server 8080 --directory ../.. &
+node e2e.js http://127.0.0.1:8080/index.html /tmp/e2e     # 35 flows, exits 1 on any failure
+node axe4.js http://127.0.0.1:8080/index.html /tmp/axe.json # exits 1 on any violation
+```
+
 | Test file | What it covers |
 |-----------|----------------|
 | [`test/records.test.js`](test/records.test.js) | `collectTaskRecords()` — IDB race-condition fix, empty/null inputs, error rejection |
@@ -143,6 +175,8 @@ npm test
 | [`test/a11y.test.js`](test/a11y.test.js) | static accessibility checks on `index.html` |
 | [`test/boot.test.js`](test/boot.test.js) | the whole app boots without an error (first visit and returning user) |
 | [`test/hook.test.js`](test/hook.test.js) | the Tune-Up Kit hook's test-summary parser |
+| [`test/kit.test.js`](test/kit.test.js) | both kit hooks driven the way Bob calls them (round 3) |
+| [`test/verdict.test.js`](test/verdict.test.js) | the CI Claim Checker report parser (round 3) |
 
 ### How IBM Bob was used
 
