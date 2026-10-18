@@ -1,0 +1,21 @@
+Test-First Fixer workflow. Round 3, part 2: put the Claim Checker mode into CI, so every pull request (and any manual run) gets Bob's own audit of the newest commit's claims. Bob Shell is meant to run headless in pipelines; this makes the Tune-Up Kit's strongest idea run without a human.
+
+1. New file .bob/ci/verdict.cjs (CommonJS, zero dependencies) exporting:
+   - finalText(streamJsonl: string) -> string: from a "bob run -f stream-json" event stream (one JSON object per line), join the "content" of assistant "message" events that come after the LAST "tool_use" event (that is Bob's final answer). Ignore blank or non-JSON lines.
+   - tally(text: string) -> { confirmed, wrong, unverifiable }: count lines whose first word is CONFIRMED, WRONG or UNVERIFIABLE (the Claim Checker output format in .bob/custom_modes.yaml; allow leading markdown such as "| ", "- ", "**").
+   - runStats(streamJsonl) -> { cost, toolCalls } from the final "result" event (stats.session_costs, stats.tool_calls), or nulls.
+   When run as a script (node .bob/ci/verdict.cjs <stream.jsonl>), print a markdown report: a heading, the tally, cost and tool calls, then the final text. Exit 0 always (the audit informs, it does not block).
+   Write test/verdict.test.js FIRST with a small inline sample stream (a few message events, a tool_use, a tool_result, more message events with two CONFIRMED lines and one WRONG line, a result event with session_costs 0.5 and tool_calls 3). Run npm test and show it red, then implement, then green.
+2. New workflow .github/workflows/bob-claim-check.yml:
+   - on: workflow_dispatch and pull_request.
+   - job "claim-check" on ubuntu-latest, env BOB_API_KEY: ${{ secrets.BOB_API_KEY }}.
+   - first step checks the secret: if it is empty, write "Claim Checker skipped: no BOB_API_KEY secret (forks do not get secrets)" to $GITHUB_STEP_SUMMARY and set an output so every later step is skipped.
+   - actions/checkout@v4 with fetch-depth: 2; actions/setup-node@v4 node-version 24.
+   - install Bob Shell headless: curl -fsSL https://bob.ibm.com/download/bobshell.sh -o /tmp/bobshell.sh then bash /tmp/bobshell.sh --pm npm (the installer reads /dev/tty unless --pm is given).
+   - run: bob run --accept-license --trust -f stream-json --mode claim-checker --max-cost 1.5 "<prompt>" < /dev/null > claim-check.jsonl, where the prompt tells Bob: read the newest commit message (git log -1 --format=%B) and its diff (git show --stat HEAD, then git show HEAD -- <file> for each file), and verify every factual claim in the message against the code; answer only with the CONFIRMED / WRONG / UNVERIFIABLE lines; do not write files. Use continue-on-error: true on this step.
+   - node .bob/ci/verdict.cjs claim-check.jsonl >> $GITHUB_STEP_SUMMARY
+   - upload claim-check.jsonl as artifact "claim-check" with actions/upload-artifact@v4, if: always().
+   Keep the workflow cost-capped exactly at --max-cost 1.5.
+3. Add a .gitignore entry for docs/e2e/node_modules/ and docs/e2e/package*.json (the CI step creates them).
+4. npm test, paste the summary line. Do not touch package.json, app files, LICENSE.md or pngs; no dependencies.
+Finish with a short list of every file you created or changed. One simple command per call.

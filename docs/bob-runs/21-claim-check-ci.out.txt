@@ -1,0 +1,34 @@
+---
+
+## Summary
+
+### Files created
+
+| File | Purpose |
+|---|---|
+| [`test/verdict.test.js`](test/verdict.test.js) | 8 tests for `finalText`, `tally`, `runStats` — written first (red), then turned green |
+| [`.bob/ci/verdict.cjs`](.bob/ci/verdict.cjs) | CommonJS module exporting `finalText`, `tally`, `runStats`; also works as a CLI script printing a markdown report |
+| [`.github/workflows/bob-claim-check.yml`](.github/workflows/bob-claim-check.yml) | CI workflow triggered by `pull_request` and `workflow_dispatch` |
+
+### Files changed
+
+| File | Change |
+|---|---|
+| [`.gitignore`](.gitignore) | Added `docs/e2e/node_modules/` and `docs/e2e/package*.json` |
+
+---
+
+### What each piece does
+
+**[`.bob/ci/verdict.cjs`](.bob/ci/verdict.cjs)**
+- [`finalText(streamJsonl)`](.bob/ci/verdict.cjs:12) — parses the JSONL stream, finds the index of the last `tool_use` event, then joins all `assistant` `message` content that follows it.
+- [`tally(text)`](.bob/ci/verdict.cjs:49) — strips leading markdown (`|`, `-`, `*`, spaces) then counts lines whose first word is `CONFIRMED`, `WRONG`, or `UNVERIFIABLE`.
+- [`runStats(streamJsonl)`](.bob/ci/verdict.cjs:79) — scans for a `result` event and returns `{ cost, toolCalls }` from its `stats`; returns `null` for each missing value.
+- CLI mode ([`:101`](.bob/ci/verdict.cjs:101)): reads a file path from `argv[2]`, prints a markdown table + Bob's final text, exits 0 always.
+
+**[`.github/workflows/bob-claim-check.yml`](.github/workflows/bob-claim-check.yml)**
+- Secret guard step: skips everything and writes to `$GITHUB_STEP_SUMMARY` if `BOB_API_KEY` is empty (safe for fork PRs).
+- Installs Bob Shell headlessly via `--pm npm` so it never tries to read `/dev/tty`.
+- Runs Bob with `--max-cost 1.5` and `< /dev/null` so it doesn't hang; `continue-on-error: true` so a Bob failure doesn't block the PR.
+- Pipes the JSONL output through `verdict.cjs` into `$GITHUB_STEP_SUMMARY`.
+- Always uploads `claim-check.jsonl` as an artifact for inspection.

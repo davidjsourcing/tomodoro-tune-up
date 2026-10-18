@@ -1,0 +1,24 @@
+Done. Here's a summary of every change made:
+
+---
+
+## What was done
+
+### Bug (a) — chunk concatenation ([`.bob/ci/verdict.cjs:43`](.bob/ci/verdict.cjs:43))
+
+**Root cause:** [`parts.join("\n")`](.bob/ci/verdict.cjs:43) inserted a newline between every streamed chunk. In a real `bob run -f stream-json` stream, chunks arrive as tiny fragments (sometimes mid-word), so the verdict word `CONFIRMED` could be split across two events (`"CONF"` + `"IRMED ..."`) and `tally()` would never match the reconstructed line.
+
+**Fix:** Changed to `parts.join("")` — the content strings already carry their own embedded `\n` characters when newlines are needed.
+
+### Bug (b) — cost format ([`.bob/ci/verdict.cjs:116`](.bob/ci/verdict.cjs:116))
+
+**Root cause:** [`"$" + stats.cost.toFixed(4)`](.bob/ci/verdict.cjs:116) treated `session_costs` as USD dollars. It's measured in Bobcoins.
+
+**Fix:** Changed to `stats.cost.toFixed(2) + " Bobcoins"`.
+
+### Tests ([`test/verdict.test.js`](test/verdict.test.js))
+
+- Updated `SAMPLE_STREAM` to have chunks ending with `\n` (realistic — real stream-json chunks carry embedded newlines).
+- Added `"finalText: concatenates streamed chunks with no separator"` — asserts exact output when chunks are mid-word split.
+- Added `"tally: counts correctly when chunks arrive mid-word"` — asserts correct CONFIRMED/WRONG counts from mid-word chunks.
+- Added `"CLI report uses Bobcoins format, not dollar sign"` — asserts the Bobcoins format string.

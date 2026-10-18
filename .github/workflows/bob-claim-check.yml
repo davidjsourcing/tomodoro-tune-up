@@ -1,0 +1,65 @@
+name: Bob Claim Checker
+
+on:
+  workflow_dispatch:
+  pull_request:
+
+jobs:
+  claim-check:
+    runs-on: ubuntu-latest
+    env:
+      BOB_API_KEY: ${{ secrets.BOB_API_KEY }}
+
+    steps:
+      - name: Check for BOB_API_KEY secret
+        id: check-secret
+        run: |
+          if [ -z "$BOB_API_KEY" ]; then
+            echo "Claim Checker skipped: no BOB_API_KEY secret (forks do not get secrets)" >> $GITHUB_STEP_SUMMARY
+            echo "skip=true" >> $GITHUB_OUTPUT
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Checkout
+        if: steps.check-secret.outputs.skip != 'true'
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Set up Node
+        if: steps.check-secret.outputs.skip != 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install Bob Shell
+        if: steps.check-secret.outputs.skip != 'true'
+        run: |
+          curl -fsSL https://bob.ibm.com/download/bobshell.sh -o /tmp/bobshell.sh
+          bash /tmp/bobshell.sh --pm npm
+
+      - name: Run Claim Checker on newest commit
+        if: steps.check-secret.outputs.skip != 'true'
+        continue-on-error: true
+        run: >
+          bob run --accept-license --trust -f stream-json --mode claim-checker --max-cost 1.5
+          "Read the newest commit message by running: git log -1 --format=%B
+          Then read its diff by running: git show --stat HEAD
+          and then for each changed file run: git show HEAD -- <file>
+          Verify every factual claim in the commit message against the actual code.
+          Answer only with CONFIRMED / WRONG / UNVERIFIABLE verdict lines as defined in your role.
+          Do not write any files."
+          < /dev/null > claim-check.jsonl
+
+      - name: Write summary report
+        if: steps.check-secret.outputs.skip != 'true'
+        run: node .bob/ci/verdict.cjs claim-check.jsonl >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload claim-check artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: claim-check
+          path: claim-check.jsonl
